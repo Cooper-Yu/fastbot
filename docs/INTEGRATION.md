@@ -181,3 +181,43 @@ rviz2 -d ~/ros2_ws/src/fastbot/fastbot_bringup/rviz/fastbot_sensors.rviz
 ```
 
 It uses `/fastbot_camera/image_raw` with the Image display, `/fastbot/scan` with LaserScan, best-effort/volatile topic QoS and `fastbot_laser_link` as the fixed frame. An Image display checks raw pictures without requiring camera calibration; this is not a calibrated Camera projection or verified sensor extrinsic model.
+## Grading-path integration check (2026-11-08)
+The public `ab65dbd` revision was downloaded afresh and built in an independent Pi
+workspace (all six packages, 4 min 37 s). The Pi's direct GitHub fetch was too slow,
+so a fresh anonymous GitHub download on the control host was relayed as a Git
+bundle. This was not a second operating system or a successful direct Pi download.
+
+The actual runtime command was `ros2 launch fastbot_bringup bringup.launch.xml`,
+without hardware-disable overrides. A rosject ran the official keyboard executable
+with `--remap cmd_vel:=/fastbot/cmd_vel`. Camera, lidar and motor feedback were active
+together. Default DDS transport was verified after the owner reconnected the robot;
+no temporary peer profile was used for the final run.
+
+Four nonzero keys were sent. The first three steps obtained settled encoder deltas:
+forward 164/218, backward -182/-144, and left -190/148. The right-turn command also
+reached the driver and produced positive-left/negative-right measured wheel speeds.
+The Pi received 606 images and 209 scans; the rosject received 240 images and 85
+scans during this run.
+
+The complete automated run returned **FAIL**, not PASS: its 0.7 s motion/settling
+protection aborted the right-turn step before collecting that step's final stable
+samples. Driver logs show a right-turn command at 1794138050.1586, a timeout zero
+at 1794138050.7148, and subsequent near-zero feedback. The owner independently
+confirmed both wheels stopped. All launch children exited cleanly and all three
+hardware device ports were released. The result demonstrates actual four-direction
+responses on the grading topic, but does not certify uninterrupted automated
+completion, exact stopping latency, matched wheel speeds, or official grading.
+The 0.7 s guard is a test protection, not a published grading-guide requirement.
+
+Earlier attempts and failures are retained in the local evidence: stale connection
+state prevented default DDS traffic; a temporary peer profile passed small-message
+checks but not integration; an early forward pulse arrived only about 54 ms before
+its zero and produced no encoder changes. The harness was then changed to wait for
+receiver acknowledgment before timing the short hold, and that workflow passed
+four-direction fake-feedback checks before the final real run. No controller
+implementation or physical speed limit was changed to make the result pass.
+
+All nine delivery READMEs are now English. A tracked-file scan found no Chinese in
+those READMEs or in student-authored Python comments/docstrings. Third-party source
+and license text retain their original provenance. The required video and official
+submission remain separate unfinished delivery steps.
