@@ -10,6 +10,7 @@ from nav_msgs.msg import Odometry
 from rclpy.node import Node
 from sensor_msgs.msg import JointState
 from serial_motor_msgs.msg import EncoderVals, MotorVels
+from serial_motor.device_paths import MOTOR_USB_IDS, resolve_serial_device
 from tf2_ros import TransformBroadcaster
 
 
@@ -662,8 +663,9 @@ def main(args=None, connection=None):
         initialized = True
         node = MotorDriver(connection=connection)
         if node.serial_enabled and connection is None:
-            if not node.serial_port:
-                raise ValueError('serial_port is required when serial is enabled')
+            node.serial_port = resolve_serial_device(
+                node.serial_port, 'arduino_nano', MOTOR_USB_IDS
+            )
             connection = prepare_serial_connection(
                 serial.Serial,
                 node.serial_port,
@@ -674,7 +676,7 @@ def main(args=None, connection=None):
             open_prepared_connection(connection)
             check_controller_ready(connection, node.baud_rate)
             node.connection = connection
-            node.get_logger().info('Serial controller ready; command limits active')
+            node.get_logger().info(f'Serial controller ready on {node.serial_port}; limits active')
         rclpy.spin(node)
     except KeyboardInterrupt:
         pass

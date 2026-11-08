@@ -4,7 +4,7 @@
   "build": "All 6 packages built successfully in 4min54s, sequential single-worker Release build",
   "motor_behavior_tests": "11 protocol/state tests plus 1 actual ROS Odometry/JointState/TF delivery test passed",
   "colcon_motor": {
-    "tests": 15,
+    "tests": 22,
     "failures": 0,
     "errors": 0,
     "skipped": 1
@@ -33,17 +33,17 @@
     "motor": "Two separately authorized tests completed: one ROS timeout pulse and one official keyboard i/k pulse; no other real movement",
     "camera_lidar": {
       "motor_serial_enabled": false,
-      "images": 38,
+      "images": 39,
       "scans": 20,
       "last_scan": {
-        "rays": 451,
+        "rays": 450,
         "finite_rays": 448,
         "frame": "fastbot_laser_link",
-        "stamp_sec": 1794123137,
-        "angle_increment": 0.013993730768561363,
+        "stamp_sec": 1794129941,
+        "angle_increment": 0.014024967327713966,
         "range_min": 0.10000000149011612,
         "range_max": 12.0,
-        "nearest": 0.2930000126361847
+        "nearest": 0.38999998569488525
       },
       "last_image": {
         "width": 320,
@@ -52,12 +52,12 @@
         "frame": "fastbot_camera_optical_frame",
         "bytes": 230400,
         "step": 960,
-        "stamp_sec": 1794123137,
+        "stamp_sec": 1794129941,
         "sample_min": 13,
         "sample_max": 255
       },
-      "image_hz": 30.22079160879045,
-      "scan_hz": 9.871344896795206,
+      "image_hz": 31.108574001321596,
+      "scan_hz": 9.977908165606168,
       "result": "PASS",
       "launch_exit_code": 0,
       "abnormal_child_exits": []
@@ -115,5 +115,15 @@
     ],
     "exit_code": 0
   },
-  "keyboard_guarded_fake": "Prior fake validation passed; the separately authorized real keyboard i/k run also passed."
+  "keyboard_guarded_fake": "Prior fake validation passed; the separately authorized real keyboard i/k run also passed.",
+  "port_selection": {
+    "tests": 7,
+    "result": "PASS",
+    "actual_ports_read_only": {
+      "motor": "/dev/serial/by-id/usb-1a86_USB_Serial-if00-port0",
+      "lidar": "/dev/serial/by-id/usb-1a86_USB_Single_Serial_5B8E671883-if00",
+      "opened_devices": false
+    }
+  },
+  "clean_clone_baseline": "93fb3f4 cloned under independent Linux workspace, env -i with only Humble underlay; all 6 packages built from scratch in 4min48s. This is the same Pi with declared system dependencies, not a fresh OS or a second robot."
 }

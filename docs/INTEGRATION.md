@@ -47,13 +47,13 @@ devices. It sends no nonzero motor command until a valid Twist is received.
 ros2 launch fastbot_bringup bringup.launch.xml
 ```
 
-Defaults are specific to the currently inspected robot:
+Geometry defaults use the currently measured robot. Empty motor/lidar port arguments prefer the course udev aliases, then select exactly one matching USB adapter:
 
 | Item | Value / source |
 | --- | --- |
 | Namespace | `fastbot` |
-| Nano | `/dev/serial/by-id/usb-1a86_USB_Serial-if00-port0`, 57600 baud |
-| N10 candidate | `/dev/serial/by-id/usb-1a86_USB_Single_Serial_5B8E671883-if00`, 230400 baud; N10 protocol and actual LaserScan stream verified |
+| Nano | Auto: `/dev/arduino_nano`, otherwise a unique CH340/FTDI adapter; 57600 baud |
+| N10 | Auto: `/dev/lslidar`, otherwise a unique current QinHeng or course CP2102 adapter; 230400 baud |
 | Camera | `/dev/video0`, IMX219, verified with bm2835 mmal after the course configuration change |
 | Wheel radius | 0.032 m, from user-measured diameter |
 | Wheel separation | 0.12 m, user measurement |
@@ -141,3 +141,7 @@ The installed ROS 2 keyboard package exposes `speed` and `turn`; this version do
 
 ## Local hardware keyboard check (2026-11-08)
 With separately confirmed suspended wheels, the official teleop_twist_keyboard app received one i key and one k key through a PTY. It produced one nonzero motor frame, 80/78 encoder increments, a stop acknowledgment after about 0.322 s, stable final counts and zero wheel feedback. App/controller resources were closed and the Nano port released. This verifies the local keyboard-to-ROS-to-Nano path; rosject networking and remote teleoperation are still pending. No further motion is authorized by that one-test confirmation.
+
+
+## Port portability
+No hardware serial number is hardcoded in the default launch. Explicit `serial_port` or `lidar_port` overrides take precedence; otherwise existing course udev aliases are preferred, then a unique known USB identity is selected without opening the device. The resolver deduplicates tty/by-id names and rejects zero or multiple matches. Nano IDs are CH340 1a86:7523 and FTDI 0403:6001; lidar IDs are this robot's 1a86:55d4 and the course example CP2102 10c4:ea60. Another adapter requires explicit configuration or a reviewed udev alias; identity selection is not proof of firmware/model compatibility. Seven filesystem-only boundary tests, read-only identification of the two actual ports, six-package build, full owned-package tests and real sensor streaming passed. No additional motor motion was performed for this change.

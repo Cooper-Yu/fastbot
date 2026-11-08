@@ -1,6 +1,8 @@
 """Coordinate motor, model and optional sensor drivers using official topic names."""
 
 from pathlib import Path
+
+from serial_motor.device_paths import LIDAR_USB_IDS, resolve_serial_device
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, OpaqueFunction
@@ -43,7 +45,9 @@ def setup(context):
                 parameters=[
                     str(params),
                     {
-                        'serial_port_': value('lidar_port'),
+                        'serial_port_': resolve_serial_device(
+                            value('lidar_port'), 'lslidar', LIDAR_USB_IDS
+                        ),
                         'frame_id': name + '_laser_link',
                         'scan_topic': 'scan',
                     },
@@ -75,10 +79,10 @@ def generate_launch_description():
     defaults = {
         'robot_name': 'fastbot',
         'serial_enabled': 'true',
-        'serial_port': '/dev/serial/by-id/usb-1a86_USB_Serial-if00-port0',
+        'serial_port': '',
         'lidar_enabled': 'true',
         'camera_enabled': 'true',
-        'lidar_port': '/dev/serial/by-id/usb-1a86_USB_Single_Serial_5B8E671883-if00',
+        'lidar_port': '',
         'camera_device': '/dev/video0',
     }
     return LaunchDescription(

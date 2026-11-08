@@ -11,7 +11,7 @@ def generate_launch_description():
     defaults = {
         'robot_name': 'fastbot',
         'serial_enabled': 'false',
-        'serial_port': '/dev/serial/by-id/usb-1a86_USB_Serial-if00-port0',
+        'serial_port': '',
         'baud_rate': '57600',
         'wheel_radius': '0.032',
         'wheel_separation': '0.12',
@@ -38,7 +38,7 @@ def generate_launch_description():
         key: ParameterValue(LaunchConfiguration(key), value_type=kind)
         for key, kind in numeric.items()
     }
-    params['serial_port'] = LaunchConfiguration('serial_port')
+    params['serial_port'] = ParameterValue(LaunchConfiguration('serial_port'), value_type=str)
     for key, suffix in [
         ('odom_frame', '_odom'),
         ('base_frame', '_base_link'),
