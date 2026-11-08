@@ -30,7 +30,7 @@
   },
   "sensor_build": "All six packages built after the recorded shutdown patch",
   "physical_tests": {
-    "motor": "One explicitly authorized suspended-wheel pulse passed; no additional real motion",
+    "motor": "Two separately authorized tests completed: one ROS timeout pulse and one official keyboard i/k pulse; no other real movement",
     "camera_lidar": {
       "motor_serial_enabled": false,
       "images": 38,
@@ -75,6 +75,19 @@
       "velocity_messages": 23,
       "nonzero_command_count": 1,
       "closed": true
+    },
+    "keyboard_i_k": {
+      "status": "pass",
+      "mode": "real",
+      "count_delta": [
+        80,
+        78
+      ],
+      "keyboard_stop_delay": 0.3215002580000146,
+      "encoder_messages": 40,
+      "velocity_messages": 39,
+      "nonzero_command_count": 1,
+      "closed": true
     }
   },
   "camera_config_tests": "6 passed (string-only review/edit-boundary tests; boot file unchanged)",
@@ -102,5 +115,5 @@
     ],
     "exit_code": 0
   },
-  "keyboard_guarded_fake": "One i key followed by k about 0.3s later passed through the official keyboard app and fake serial; real keyboard motion not authorized yet."
+  "keyboard_guarded_fake": "Prior fake validation passed; the separately authorized real keyboard i/k run also passed."
 }
