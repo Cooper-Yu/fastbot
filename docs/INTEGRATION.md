@@ -125,3 +125,7 @@ assembly/wiring inspection, Twist/keyboard response, external rosject control,
 real scan/image streaming, clone/build on the review environment, instructor
 repository access, and a publicly shared demonstration video of at most three
 minutes. Record each separately; no official score or learner PASS is inferred.
+
+
+## Reviewed camera configuration helper
+Run `python3 ~/ros2_ws/src/fastbot_bringup/tools/configure_legacy_camera.py` to inspect the exact proposed boot diff. It is read-only by default. Apply requires sudo, `--apply`, and `--expected-sha256` with the checksum printed by review. The helper refuses ambiguous settings and changed input, writes a timestamped backup, and does not reboot. Reboot manually after all builds/package installations have finished. Legacy firmware/module presence was verified on this Pi; successful image capture still requires a post-reboot test.

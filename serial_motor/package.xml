@@ -22,4 +22,5 @@
   <exec_depend>launch</exec_depend>
   <exec_depend>launch_ros</exec_depend>
   <exec_depend>ament_index_python</exec_depend>
+  <test_depend>tf2_msgs</test_depend>
 </package>

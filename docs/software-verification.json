@@ -1,10 +1,10 @@
 {
   "date": "2026-11-08",
   "environment": "Pi4 Ubuntu22.04 ARM64 Humble",
-  "build": "4 packages built successfully",
-  "motor_behavior_tests": "11 passed",
+  "build": "All 6 packages built successfully in 4min54s, sequential single-worker Release build",
+  "motor_behavior_tests": "11 protocol/state tests plus 1 actual ROS Odometry/JointState/TF delivery test passed",
   "colcon_motor": {
-    "tests": 14,
+    "tests": 15,
     "failures": 0,
     "errors": 0,
     "skipped": 1
@@ -28,6 +28,7 @@
     "result": "PASS",
     "launch_exit_code": 0
   },
-  "sensor_build": "pending sudo dependencies",
-  "physical_tests": "not run in this delegated session"
+  "sensor_build": "N10 source driver built; pcap replay warning, serial path unaffected by build warning",
+  "physical_tests": "not run; boot configuration/reboot pending user handoff",
+  "camera_config_tests": "6 passed (string-only review/edit-boundary tests; boot file unchanged)"
 }
