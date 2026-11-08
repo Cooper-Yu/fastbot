@@ -253,3 +253,49 @@ The offline utility has eight boundary tests, including mixed intervals, missing
 ACK evidence, prior zero history, communication faults, and reversed timestamps.
 They pass alongside six existing camera tests on the Pi (Python 3.10/Humble).
 This is software evidence only; no additional physical test was performed.
+
+
+## Focused timeout-stop probe (2026-11-08)
+
+After onsite confirmation, one local right-turn command (angular.z=-0.59049)
+was tested with the unchanged motor driver and 0.7 s protection. The temporary
+diagnostic subclass records command receipt, serial send/ACK return and encoder
+sample timestamps on one host-monotonic clock. It delegates the actual driver
+callbacks, serial handling and timers to the original implementation.
+
+The probe received a zero-command ACK 0.523706144 s after command receipt. At
+the 0.7 s guard check, both latest measured wheel velocities were zero. Five
+consecutive complete post-ACK intervals had zero velocity and unchanged counts;
+the stable interval run started at approximately 0.59145 s and its fifth sample
+was confirmed at 1.09185 s. Right-turn feedback signs were observed. Cleanup
+zero was acknowledged, the connection closed, and the serial port was released.
+
+This focused probe returned PASS. It does not rewrite the earlier formal-run
+FAIL or prove its root cause. Camera, lidar, the formal bringup entry and cloud
+transport were intentionally outside this diagnostic. The installed driver's
+SHA256 matched the source file. Neither controller logic nor protection limits
+were changed.
+
+The checked-in helper defaults to a protocol double, not hardware:
+
+```bash
+source /opt/ros/humble/setup.bash
+source ~/ros2_ws/install/setup.bash
+export ROS_DOMAIN_ID=122 ROS_LOCALHOST_ONLY=1
+unset CYCLONEDDS_URI
+python3 fastbot_bringup/tools/bounded_stop_probe.py --output /tmp/stop-fake.json
+python3 fastbot_bringup/tools/bounded_stop_probe.py --late-zero --output /tmp/stop-late-fake.json
+```
+
+The normal fake case passed. The delayed-zero fake case intentionally returned
+FAIL_PROTECTION (exit 1), then captured settled feedback, proving the guard result
+is retained. Hardware requires the explicit `--hardware` flag, fresh onsite
+approval, both wheels suspended, exclusive serial ownership, a bounded wrapper,
+and an available physical power cutoff. Do not run it as an unattended test or
+add it to automatic hardware CI. The diagnostic sends one nonzero command only;
+at the guard checkpoint and during cleanup it sends zero. Feedback loss/fault
+aborts further motion. A communication fault can leave stopping unconfirmed;
+software cleanup cannot replace the physical cutoff.
+
+The required delivery video and official submission remain unfinished. No
+learner reconstruction gate or official grade was changed by this probe.
