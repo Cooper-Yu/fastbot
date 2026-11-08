@@ -109,17 +109,70 @@ def compute_encoder_angular_speed(count_delta, elapsed, encoder_cpr):
 
 
 def compute_robot_linear_speed(left_angular_speed, right_angular_speed, wheel_radius):
-    """@brief Reserve the learner-owned robot forward-speed calculation.
+    """@brief Estimate robot forward speed from the measured wheel angular speeds.
 
     @param[in] left_angular_speed Measured left wheel angular speed in rad/s.
     @param[in] right_angular_speed Measured right wheel angular speed in rad/s.
     @param[in] wheel_radius Common wheel radius in meters; positive and finite.
-    @note The implementation remains an exercise and is not called by the node."""
+    @return Estimated robot forward speed in m/s, retaining its sign.
+    @note This pure calculation is not yet connected to the node."""
     require_positive_finite('wheel_radius', wheel_radius)
     if not all(math.isfinite(value) for value in (left_angular_speed, right_angular_speed)):
         raise ValueError('Wheel angular speeds must be finite')
-    # CP21-C003-TODO86: Convert wheel rad/s to m/s and return their average.
-    raise NotImplementedError('TODO86: derive robot linear speed from wheel feedback')
+    return (left_angular_speed + right_angular_speed) * wheel_radius / 2
+
+
+def compute_robot_angular_speed(
+    left_angular_speed, right_angular_speed, wheel_radius, wheel_separation
+):
+    """@brief Estimate robot yaw rate from the measured wheel angular speeds.
+
+    @param[in] left_angular_speed Measured left wheel angular speed in rad/s.
+    @param[in] right_angular_speed Measured right wheel angular speed in rad/s.
+    @param[in] wheel_radius Common wheel radius in meters; positive and finite.
+    @param[in] wheel_separation Wheel centerline distance in meters; positive and finite.
+    @return Estimated robot yaw rate in rad/s; a left turn is positive.
+    @note This pure calculation is not yet connected to the node."""
+    require_positive_finite('wheel_radius', wheel_radius)
+    require_positive_finite('wheel_separation', wheel_separation)
+    if not all(math.isfinite(value) for value in (left_angular_speed, right_angular_speed)):
+        raise ValueError('Wheel angular speeds must be finite')
+    return (right_angular_speed - left_angular_speed) * wheel_radius / wheel_separation
+
+
+def compute_motion_increments(linear_speed, angular_speed, elapsed):
+    """@brief Calculate signed motion increments over one measured sample interval.
+
+    @param[in] linear_speed Measured robot forward speed in m/s.
+    @param[in] angular_speed Measured robot yaw rate in rad/s.
+    @param[in] elapsed Actual sampling interval in seconds; positive and finite.
+    @return Forward distance in meters and heading change in radians.
+    @note These are interval increments, not absolute position.
+    This pure calculation is not yet connected to the node."""
+    require_positive_finite('elapsed', elapsed)
+    if not all(math.isfinite(value) for value in (linear_speed, angular_speed)):
+        raise ValueError('Robot speeds must be finite')
+    return linear_speed * elapsed, angular_speed * elapsed
+
+
+def advance_planar_pose(x, y, heading, distance, heading_change):
+    """@brief Advance a planar pose using the starting-heading approximation.
+
+    @param[in] x Previous fixed-frame x position in meters.
+    @param[in] y Previous fixed-frame y position in meters.
+    @param[in] heading Previous heading in radians; left turns are positive.
+    @param[in] distance Signed forward travel over this sample in meters.
+    @param[in] heading_change Signed heading change over this sample in radians.
+    @return Updated fixed-frame x, y in meters and heading in radians.
+    @note Use the interval's starting heading for this approximate position step.
+    Heading is not normalized here. This exercise is not connected to the node."""
+    if not all(math.isfinite(value) for value in (x, y, heading, distance, heading_change)):
+        raise ValueError('Pose and motion increments must be finite')
+    return (
+        x + distance * math.cos(heading),
+        y + distance * math.sin(heading),
+        heading + heading_change,
+    )
 
 
 def format_motor_command(left_counts, right_counts):
@@ -272,6 +325,8 @@ class MotorDriver(Node):
         try:
             self.connection = connection
             self.communication_fault = False
+            # CP21-C003-TODO94: Initialize self.x, self.y and self.heading at the origin.
+
             self.previous_encoder_sample = None
             self.serial_enabled = self.declare_parameter('serial_enabled', False).value
             self.serial_port = self.declare_parameter('serial_port', '').value
