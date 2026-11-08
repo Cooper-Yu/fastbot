@@ -52,7 +52,9 @@ def main():
                     missing.append('compile_commands.json not found')
                 else:
                     for file in translations:
-                        run('clang-tidy', [file, '-p', database, '--warnings-as-errors=readability-function-size,readability-identifier-naming'])
+                        warnings = ('--warnings-as-errors=readability-function-size,'
+                                    'readability-identifier-naming')
+                        run('clang-tidy', [file, '-p', database, warnings])
     if py:
         run('ruff', ['check', *py])
         run('ruff', ['format', '--check', *py])

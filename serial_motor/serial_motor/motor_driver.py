@@ -14,26 +14,30 @@ from tf2_ros import TransformBroadcaster
 
 
 def compute_wheel_linear_speeds(linear_speed, angular_speed, wheel_separation):
-    """@brief Convert requested robot motion to left and right wheel linear speeds.
+    """
+    @brief Convert requested robot motion to left and right wheel linear speeds.
 
     @param[in] linear_speed Requested forward speed in m/s from cmd_vel_callback.
     @param[in] angular_speed Requested yaw rate in rad/s from cmd_vel_callback.
     @param[in] wheel_separation Distance between wheel centerlines in meters.
     @return Left and right wheel speeds in m/s, retaining direction.
-    @note The caller validates finite inputs and positive geometry."""
+    @note The caller validates finite inputs and positive geometry.
+    """
     left_speed = linear_speed - angular_speed * wheel_separation / 2
     right_speed = linear_speed + angular_speed * wheel_separation / 2
     return left_speed, right_speed
 
 
 def compute_wheel_angular_speeds(left_linear_speed, right_linear_speed, wheel_radius):
-    """@brief Convert wheel linear speeds to angular speeds.
+    """
+    @brief Convert wheel linear speeds to angular speeds.
 
     @param[in] left_linear_speed Left target speed in m/s from cmd_vel_callback.
     @param[in] right_linear_speed Right target speed in m/s from cmd_vel_callback.
     @param[in] wheel_radius Common wheel radius in meters; must be positive.
     @return Left and right target angular speeds in rad/s.
-    @note No controller command is sent by this calculation."""
+    @note No controller command is sent by this calculation.
+    """
     if wheel_radius <= 0:
         raise ValueError('wheel_radius must be greater than zero')
 
@@ -45,26 +49,30 @@ def compute_wheel_angular_speeds(left_linear_speed, right_linear_speed, wheel_ra
 def compute_encoder_counts_per_loop(
     left_angular_speed, right_angular_speed, encoder_cpr, loop_rate
 ):
-    """@brief Convert wheel angular targets to counts per controller update.
+    """
+    @brief Convert wheel angular targets to counts per controller update.
 
     @param[in] left_angular_speed Left target in rad/s from cmd_vel_callback.
     @param[in] right_angular_speed Right target in rad/s from cmd_vel_callback.
     @param[in] encoder_cpr Encoder counts per wheel revolution; positive.
     @param[in] loop_rate Controller update frequency in Hz; positive.
     @return Signed fractional counts per update for the two wheels.
-    @note Integer conversion is deferred until command formatting."""
+    @note Integer conversion is deferred until command formatting.
+    """
     left_counts = left_angular_speed / (2 * math.pi) * encoder_cpr / loop_rate
     right_counts = right_angular_speed / (2 * math.pi) * encoder_cpr / loop_rate
     return left_counts, right_counts
 
 
 def require_positive_finite(name, value):
-    """@brief Reject a configuration value unless it is positive and finite.
+    """
+    @brief Reject a configuration value unless it is positive and finite.
 
     @param[in] name Parameter label used in the error message.
     @param[in] value Numeric configuration value supplied by the caller.
     @return The validated value unchanged.
-    @note Invalid values raise ValueError before dependent calculations."""
+    @note Invalid values raise ValueError before dependent calculations.
+    """
     if value <= 0:
         raise ValueError(f'{name} must be greater than zero')
     if not math.isfinite(value):
@@ -73,13 +81,15 @@ def require_positive_finite(name, value):
 
 
 def compute_encoder_count_delta(current_count, previous_count):
-    """@brief Calculate the shortest signed difference between int32 counts.
+    """
+    @brief Calculate the shortest signed difference between int32 counts.
 
     @param[in] current_count Current cumulative count from a successful sample.
     @param[in] previous_count Previous cumulative count retained by the sampler.
     @return Signed count difference with one int32 wraparound corrected.
     @note Actual travel between samples must be less than 2**31 counts.
-    Exactly half the range is ambiguous; controller resets are not detected."""
+    Exactly half the range is ambiguous; controller resets are not detected.
+    """
     for value in (current_count, previous_count):
         if not isinstance(value, int) or isinstance(value, bool):
             raise ValueError('Encoder counts must be integers')
@@ -96,13 +106,15 @@ def compute_encoder_count_delta(current_count, previous_count):
 
 
 def compute_encoder_angular_speed(count_delta, elapsed, encoder_cpr):
-    """@brief Calculate average measured angular speed over a sampling interval.
+    """
+    @brief Calculate average measured angular speed over a sampling interval.
 
     @param[in] count_delta Signed count difference from the sampler.
     @param[in] elapsed Actual sampling interval in seconds; positive and finite.
     @param[in] encoder_cpr Counts per wheel revolution; positive and finite.
     @return Average wheel angular speed in rad/s.
-    @note Wraparound is resolved before this conversion."""
+    @note Wraparound is resolved before this conversion.
+    """
     require_positive_finite('elapsed', elapsed)
     require_positive_finite('encoder_cpr', encoder_cpr)
     if not math.isfinite(count_delta):
@@ -112,13 +124,15 @@ def compute_encoder_angular_speed(count_delta, elapsed, encoder_cpr):
 
 
 def compute_robot_linear_speed(left_angular_speed, right_angular_speed, wheel_radius):
-    """@brief Estimate robot forward speed from the measured wheel angular speeds.
+    """
+    @brief Estimate robot forward speed from the measured wheel angular speeds.
 
     @param[in] left_angular_speed Measured left wheel angular speed in rad/s.
     @param[in] right_angular_speed Measured right wheel angular speed in rad/s.
     @param[in] wheel_radius Common wheel radius in meters; positive and finite.
     @return Estimated robot forward speed in m/s, retaining its sign.
-    @note Used with measured wheel feedback, not requested motion."""
+    @note Used with measured wheel feedback, not requested motion.
+    """
     require_positive_finite('wheel_radius', wheel_radius)
     if not all(math.isfinite(value) for value in (left_angular_speed, right_angular_speed)):
         raise ValueError('Wheel angular speeds must be finite')
@@ -128,14 +142,16 @@ def compute_robot_linear_speed(left_angular_speed, right_angular_speed, wheel_ra
 def compute_robot_angular_speed(
     left_angular_speed, right_angular_speed, wheel_radius, wheel_separation
 ):
-    """@brief Estimate robot yaw rate from the measured wheel angular speeds.
+    """
+    @brief Estimate robot yaw rate from the measured wheel angular speeds.
 
     @param[in] left_angular_speed Measured left wheel angular speed in rad/s.
     @param[in] right_angular_speed Measured right wheel angular speed in rad/s.
     @param[in] wheel_radius Common wheel radius in meters; positive and finite.
     @param[in] wheel_separation Wheel centerline distance in meters; positive and finite.
     @return Estimated robot yaw rate in rad/s; a left turn is positive.
-    @note Used with measured wheel feedback, not requested motion."""
+    @note Used with measured wheel feedback, not requested motion.
+    """
     require_positive_finite('wheel_radius', wheel_radius)
     require_positive_finite('wheel_separation', wheel_separation)
     if not all(math.isfinite(value) for value in (left_angular_speed, right_angular_speed)):
@@ -144,14 +160,16 @@ def compute_robot_angular_speed(
 
 
 def compute_motion_increments(linear_speed, angular_speed, elapsed):
-    """@brief Calculate signed motion increments over one measured sample interval.
+    """
+    @brief Calculate signed motion increments over one measured sample interval.
 
     @param[in] linear_speed Measured robot forward speed in m/s.
     @param[in] angular_speed Measured robot yaw rate in rad/s.
     @param[in] elapsed Actual sampling interval in seconds; positive and finite.
     @return Forward distance in meters and heading change in radians.
     @note These are interval increments, not absolute position.
-    The sampler supplies its actual measured interval."""
+    The sampler supplies its actual measured interval.
+    """
     require_positive_finite('elapsed', elapsed)
     if not all(math.isfinite(value) for value in (linear_speed, angular_speed)):
         raise ValueError('Robot speeds must be finite')
@@ -159,7 +177,8 @@ def compute_motion_increments(linear_speed, angular_speed, elapsed):
 
 
 def advance_planar_pose(x, y, heading, distance, heading_change):
-    """@brief Advance a planar pose using the starting-heading approximation.
+    """
+    @brief Advance a planar pose using the starting-heading approximation.
 
     @param[in] x Previous fixed-frame x position in meters.
     @param[in] y Previous fixed-frame y position in meters.
@@ -168,7 +187,8 @@ def advance_planar_pose(x, y, heading, distance, heading_change):
     @param[in] heading_change Signed heading change over this sample in radians.
     @return Updated fixed-frame x, y in meters and heading in radians.
     @note Use the interval's starting heading for this approximate position step.
-    Heading is not normalized here."""
+    Heading is not normalized here.
+    """
     if not all(math.isfinite(value) for value in (x, y, heading, distance, heading_change)):
         raise ValueError('Pose and motion increments must be finite')
     return (
@@ -179,33 +199,39 @@ def advance_planar_pose(x, y, heading, distance, heading_change):
 
 
 def format_motor_command(left_counts, right_counts):
-    """@brief Encode two target counts as a controller speed command.
+    """
+    @brief Encode two target counts as a controller speed command.
 
     @param[in] left_counts Signed left target counts per controller update.
     @param[in] right_counts Signed right target counts per controller update.
     @return The m command string with integer targets and a final carriage return.
-    @note int() truncates toward zero; this function performs no serial I/O."""
+    @note int() truncates toward zero; this function performs no serial I/O.
+    """
     return f'm {int(left_counts)} {int(right_counts)}\r'
 
 
 def has_command_timed_out(elapsed, timeout):
-    """@brief Check whether the last valid command has reached its deadline.
+    """
+    @brief Check whether the last valid command has reached its deadline.
 
     @param[in] elapsed Seconds since the last accepted command.
     @param[in] timeout Command lifetime in seconds.
     @return True at or beyond the deadline; otherwise False.
-    @note The caller supplies valid time values."""
+    @note The caller supplies valid time values.
+    """
     return elapsed >= timeout
 
 
 def send_motor_command(connection, command):
-    """@brief Write one complete UTF-8 command and require an OK response.
+    """
+    @brief Write one complete UTF-8 command and require an OK response.
 
     @param[in,out] connection Finite-timeout serial transport or protocol double.
     @param[in] command Command string created by format_motor_command.
     @return The number of bytes written after acknowledgment succeeds.
     @note Partial writes and invalid responses raise without automatic retries.
-    An acknowledgment confirms protocol handling, not physical motion accuracy."""
+    An acknowledgment confirms protocol handling, not physical motion accuracy.
+    """
     payload = command.encode('utf-8')
     written = connection.write(payload)
     if written != len(payload):
@@ -218,7 +244,8 @@ def send_motor_command(connection, command):
 
 
 def prepare_serial_connection(connection_factory, port, baud_rate, read_timeout, write_timeout):
-    """@brief Configure a closed serial connection with finite timeouts.
+    """
+    @brief Configure a closed serial connection with finite timeouts.
 
     @param[in] connection_factory Serial constructor supplied by main or a test.
     @param[in] port Device path assigned to the initially closed connection.
@@ -226,7 +253,8 @@ def prepare_serial_connection(connection_factory, port, baud_rate, read_timeout,
     @param[in] read_timeout Positive finite read timeout in seconds.
     @param[in] write_timeout Positive finite write timeout in seconds.
     @return The configured connection, still closed.
-    @note Opening and final ownership are handled by the caller."""
+    @note Opening and final ownership are handled by the caller.
+    """
     require_positive_finite('read_timeout', read_timeout)
     require_positive_finite('write_timeout', write_timeout)
     connection = connection_factory(
@@ -240,11 +268,13 @@ def prepare_serial_connection(connection_factory, port, baud_rate, read_timeout,
 
 
 def open_prepared_connection(connection):
-    """@brief Open a configured connection and clean up a failed open.
+    """
+    @brief Open a configured connection and clean up a failed open.
 
     @param[in,out] connection Closed transport returned by preparation.
     @return The same connection after a successful open.
-    @note An opening exception is propagated after attempting close."""
+    @note An opening exception is propagated after attempting close.
+    """
     try:
         connection.open()
     except Exception:
@@ -254,13 +284,15 @@ def open_prepared_connection(connection):
 
 
 def check_controller_ready(connection, expected_baud, wait_seconds=2.5):
-    """@brief Wait for startup and validate the controller baud query.
+    """
+    @brief Wait for startup and validate the controller baud query.
 
     @param[in,out] connection Open transport owned by main.
     @param[in] expected_baud Baud rate configured for the controller.
     @param[in] wait_seconds Positive finite startup delay in seconds.
     @return The baud rate reported by the controller.
-    @note Startup input is discarded before the read-only b query."""
+    @note Startup input is discarded before the read-only b query.
+    """
     require_positive_finite('startup_wait', wait_seconds)
     time.sleep(wait_seconds)
     connection.reset_input_buffer()
@@ -275,13 +307,15 @@ def check_controller_ready(connection, expected_baud, wait_seconds=2.5):
 
 
 def limit_motor_counts(left_counts, right_counts, max_counts):
-    """@brief Limit both wheel targets by one common scale factor.
+    """
+    @brief Limit both wheel targets by one common scale factor.
 
     @param[in] left_counts Signed left target counts per update.
     @param[in] right_counts Signed right target counts per update.
     @param[in] max_counts Positive absolute limit, at most 32767.
     @return Limited left and right targets, preserving their ratio and signs.
-    @note The integer range limit is not a calibrated physical safety limit."""
+    @note The integer range limit is not a calibrated physical safety limit.
+    """
     require_positive_finite('max_counts', max_counts)
     if max_counts > 32767:
         raise ValueError('max_counts exceeds the controller integer range')
@@ -295,11 +329,13 @@ def limit_motor_counts(left_counts, right_counts, max_counts):
 
 
 def read_encoder_values(connection):
-    """@brief Query one complete encoder response and validate its two counts.
+    """
+    @brief Query one complete encoder response and validate its two counts.
 
     @param[in,out] connection Open transport with finite read and write timeouts.
     @return Left and right cumulative counts within the int32 message range.
-    @note Short writes, partial lines and invalid fields raise an exception."""
+    @note Short writes, partial lines and invalid fields raise an exception.
+    """
     payload = b'e\r'
     if connection.write(payload) != len(payload):
         raise OSError('Incomplete encoder query write')
@@ -320,10 +356,12 @@ class MotorDriver(Node):
     """@brief Handle ROS motion requests, serial commands and encoder feedback."""
 
     def __init__(self, connection=None):
-        """@brief Configure preview mode, parameters, subscriptions and feedback timers.
+        """
+        @brief Configure preview mode, parameters, subscriptions and feedback timers.
 
         @param[in,out] connection Optional transport injected by main or a test.
-        @note No serial device is opened by this constructor. Preview is the default."""
+        @note No serial device is opened by this constructor. Preview is the default.
+        """
         super().__init__('motor_driver', namespace='fastbot')
         try:
             self.connection = connection
@@ -389,11 +427,13 @@ class MotorDriver(Node):
         self.tf_broadcaster = TransformBroadcaster(self) if self.publish_tf else None
 
     def cmd_vel_callback(self, msg):
-        """@brief Convert a valid velocity request into limited controller targets.
+        """
+        @brief Convert a valid velocity request into limited controller targets.
 
         @param[in] msg Twist containing forward linear.x and yaw angular.z.
         @note Only accepted commands refresh the command deadline.
-        A latched communication fault rejects further motion inputs."""
+        A latched communication fault rejects further motion inputs.
+        """
         if self.communication_fault:
             self.get_logger().error('Motion input rejected after communication fault')
             return
@@ -433,12 +473,14 @@ class MotorDriver(Node):
         self.last_command_time = time.monotonic()
 
     def send_command_safely(self, command):
-        """@brief Send an acknowledged command or latch a communication fault.
+        """
+        @brief Send an acknowledged command or latch a communication fault.
 
         @param[in] command Formatted command from the callback or stop path.
         @return True for preview or an acknowledged send; False on a fault.
         @note Faults inhibit further sends and clear the command timestamp.
-        No retry or physical stopping confirmation is implied by the fault flag."""
+        No retry or physical stopping confirmation is implied by the fault flag.
+        """
         if self.communication_fault:
             return False
         if self.connection is None:
@@ -448,18 +490,20 @@ class MotorDriver(Node):
         except (OSError, RuntimeError, UnicodeError) as error:
             self.communication_fault = True
             self.last_command_time = None
-            self.get_logger().error('Motor communication failed; result unconfirmed: ' + str(error))
+            self.get_logger().error('Motor communication failed; unconfirmed: ' + str(error))
             return False
         return True
 
     def update_encoder_speed_sample(self, left_encoder, right_encoder, sample_time):
-        """@brief Derive wheel angular speeds from consecutive successful samples.
+        """
+        @brief Derive wheel angular speeds from consecutive successful samples.
 
         @param[in] left_encoder Current left cumulative int32 count.
         @param[in] right_encoder Current right cumulative int32 count.
         @param[in] sample_time Host monotonic time after reading the response.
         @return None for the first sample; otherwise left and right rad/s.
-        @note The baseline advances only after both wheel calculations succeed."""
+        @note The baseline advances only after both wheel calculations succeed.
+        """
         current_sample = (left_encoder, right_encoder, sample_time)
         if self.previous_encoder_sample is None:
             self.previous_encoder_sample = current_sample
@@ -478,12 +522,14 @@ class MotorDriver(Node):
         return left_angular_speed, right_angular_speed
 
     def update_pose(self, left_speed, right_speed, elapsed):
-        """@brief Commit one complete measured interval to body and wheel state.
+        """
+        @brief Commit one complete measured interval to body and wheel state.
 
         @param[in] left_speed Measured left wheel angular speed in rad/s.
         @param[in] right_speed Measured right wheel angular speed in rad/s.
         @param[in] elapsed Actual monotonic interval in seconds.
-        @note All candidate values are validated before any state is committed."""
+        @note All candidate values are validated before any state is committed.
+        """
         linear = compute_robot_linear_speed(left_speed, right_speed, self.wheel_radius)
         angular = compute_robot_angular_speed(
             left_speed, right_speed, self.wheel_radius, self.wheel_separation
@@ -501,11 +547,13 @@ class MotorDriver(Node):
         self.body_velocity = (linear, angular)
 
     def publish_odometry(self, angular_speeds):
-        """@brief Publish accumulated pose, measured body velocity, TF and wheel joints.
+        """
+        @brief Publish accumulated pose, measured body velocity, TF and wheel joints.
 
         @param[in] angular_speeds Left/right measured angular speeds in rad/s.
         @note Uses ROS timestamps for messages and monotonic intervals for integration.
-        Covariances are initial estimates, not a calibrated accuracy claim."""
+        Covariances are initial estimates, not a calibrated accuracy claim.
+        """
         stamp = self.get_clock().now().to_msg()
         message = Odometry()
         message.header.stamp = stamp
@@ -540,11 +588,13 @@ class MotorDriver(Node):
         self.joint_pub_.publish(joints)
 
     def publish_encoder_values(self):
-        """@brief Query cumulative counts and publish measured wheel feedback.
+        """
+        @brief Query cumulative counts and publish measured wheel feedback.
 
         @note Serial transactions share the default mutually exclusive callback group.
         The first valid sample publishes counts but does not guess a wheel speed.
-        Read or calculation failures latch a fault and inhibit later communication."""
+        Read or calculation failures latch a fault and inhibit later communication.
+        """
         if self.connection is None or self.communication_fault:
             return
         try:
@@ -578,10 +628,12 @@ class MotorDriver(Node):
         self.publish_odometry(angular_speeds)
 
     def check_command_timeout(self):
-        """@brief Attempt a zero target after the valid command lifetime expires.
+        """
+        @brief Attempt a zero target after the valid command lifetime expires.
 
         @note The timestamp is cleared after preview or an acknowledged zero.
-        A failed send latches a fault without claiming a confirmed physical stop."""
+        A failed send latches a fault without claiming a confirmed physical stop.
+        """
         if self.last_command_time is None:
             return
         elapsed = time.monotonic() - self.last_command_time
@@ -595,12 +647,14 @@ class MotorDriver(Node):
 
 
 def main(args=None, connection=None):
-    """@brief Own ROS and serial resources through startup, execution and cleanup.
+    """
+    @brief Own ROS and serial resources through startup, execution and cleanup.
 
     @param[in] args Optional ROS command-line arguments.
     @param[in,out] connection Optional injected transport; closed during cleanup.
     @note Hardware is enabled only by an explicit serial_enabled parameter.
-    Cleanup attempts zero unless a communication fault is already latched."""
+    Cleanup attempts zero unless a communication fault is already latched.
+    """
     node = None
     initialized = False
     try:
