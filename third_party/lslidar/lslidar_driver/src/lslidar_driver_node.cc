@@ -26,10 +26,25 @@ int main(int argc, char* argv[])
   rclcpp::init(argc, argv);
   auto node = std::make_shared<lslidar_driver::LslidarDriver>();
   
-  while (rclcpp::ok() && node->polling()) {
-        rclcpp::spin_some(node);
+  // Keep one executor: spin_some(node) otherwise constructs a fresh executor
+  // after polling(), which can race the signal handler's context shutdown.
+  rclcpp::executors::SingleThreadedExecutor executor;
+  executor.add_node(node);
+  try {
+    while (rclcpp::ok() && node->polling()) {
+      if (!rclcpp::ok()) {
+        break;
+      }
+      executor.spin_some();
+    }
+  } catch (const rclcpp::exceptions::RCLError &) {
+    if (rclcpp::ok()) {
+      throw;
+    }
+    // A concurrent shutdown invalidated a ROS operation; leave normally.
   }
-  //rclcpp::spin(node);
-  rclcpp::shutdown();
+  if (rclcpp::ok()) {
+    rclcpp::shutdown();
+  }
   return 0;
 }

@@ -34,15 +34,10 @@
 namespace lslidar_driver
 {
 
-	static void my_hander(int sig)
-	{
-		printf("sig: %d", sig);
-		abort();
-	}
 	LslidarDriver::LslidarDriver() : LslidarDriver(rclcpp::NodeOptions()) {}
 	LslidarDriver::LslidarDriver(const rclcpp::NodeOptions &options) : Node("lslidar_driver_node", options), diagnostics(this)
 	{
-		signal(SIGINT, my_hander);
+		// CP21: retain the ROS SIGINT handler installed by rclcpp::init.
 
 		if (!this->initialize())
 			RCLCPP_ERROR(this->get_logger(), "Could not initialize the driver...");
@@ -52,7 +47,13 @@ namespace lslidar_driver
 
 	LslidarDriver::~LslidarDriver()
 	{
-		return;
+		if (pubscan_thread_ != nullptr) {
+			pubscan_thread_->interrupt();
+			pubscan_cond_.notify_all();
+			pubscan_thread_->join();
+			delete pubscan_thread_;
+			pubscan_thread_ = nullptr;
+		}
 	}
 
 	bool LslidarDriver::loadParameters()
@@ -964,6 +965,10 @@ namespace lslidar_driver
 			{
 				pubscan_cond_.wait(lock);
 				wait_for_wake = false;
+			}
+			boost::this_thread::interruption_point();
+			if (!rclcpp::ok()) {
+				return;
 			}
 			if (lidar_name == "N10_P" || lidar_name == "M10_DOUBLE")
 			{

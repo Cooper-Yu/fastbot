@@ -28,7 +28,41 @@
     "result": "PASS",
     "launch_exit_code": 0
   },
-  "sensor_build": "N10 source driver built; pcap replay warning, serial path unaffected by build warning",
-  "physical_tests": "not run; boot configuration/reboot pending user handoff",
+  "sensor_build": "All six packages built after the recorded shutdown patch",
+  "physical_tests": {
+    "motor": "not enabled during this delegated session",
+    "camera_lidar": {
+      "motor_serial_enabled": false,
+      "images": 38,
+      "scans": 20,
+      "last_scan": {
+        "rays": 451,
+        "finite_rays": 448,
+        "frame": "fastbot_laser_link",
+        "stamp_sec": 1794123137,
+        "angle_increment": 0.013993730768561363,
+        "range_min": 0.10000000149011612,
+        "range_max": 12.0,
+        "nearest": 0.2930000126361847
+      },
+      "last_image": {
+        "width": 320,
+        "height": 240,
+        "encoding": "rgb8",
+        "frame": "fastbot_camera_optical_frame",
+        "bytes": 230400,
+        "step": 960,
+        "stamp_sec": 1794123137,
+        "sample_min": 13,
+        "sample_max": 255
+      },
+      "image_hz": 30.22079160879045,
+      "scan_hz": 9.871344896795206,
+      "result": "PASS",
+      "launch_exit_code": 0,
+      "abnormal_child_exits": []
+    },
+    "shutdown": "all four child processes clean; no abnormal child exits; no forced cleanup"
+  },
   "camera_config_tests": "6 passed (string-only review/edit-boundary tests; boot file unchanged)"
 }

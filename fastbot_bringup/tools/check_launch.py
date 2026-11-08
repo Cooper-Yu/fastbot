@@ -1,4 +1,5 @@
 """Bounded launch/topic/cleanup smoke test with every hardware path disabled."""
+
 from pathlib import Path
 import json
 import os
@@ -10,7 +11,9 @@ import rclpy
 from geometry_msgs.msg import Twist
 from rclpy.node import Node
 
-log = Path.home() / '.cache/cp21-delegated/preview-launch.log'
+cache = Path.home() / '.cache/cp21-delegated'
+cache.mkdir(parents=True, exist_ok=True)
+log = cache / 'preview-launch.log'
 result = {'hardware_enabled': False}
 process = None
 observer = None
@@ -19,10 +22,20 @@ try:
     observer = Node('cp21_launch_probe')
     publisher = observer.create_publisher(Twist, '/fastbot/cmd_vel', 10)
     with log.open('w') as output:
-        process = subprocess.Popen([
-            'ros2', 'launch', 'fastbot_bringup', 'bringup.launch.xml',
-            'serial_enabled:=false', 'lidar_enabled:=false', 'camera_enabled:=false',
-        ], stdout=output, stderr=subprocess.STDOUT, start_new_session=True)
+        process = subprocess.Popen(
+            [
+                'ros2',
+                'launch',
+                'fastbot_bringup',
+                'bringup.launch.xml',
+                'serial_enabled:=false',
+                'lidar_enabled:=false',
+                'camera_enabled:=false',
+            ],
+            stdout=output,
+            stderr=subprocess.STDOUT,
+            start_new_session=True,
+        )
         deadline = time.monotonic() + 15
         while time.monotonic() < deadline:
             rclpy.spin_once(observer, timeout_sec=0.1)
@@ -51,7 +64,7 @@ try:
         result['command_and_timeout_preview'] = True
 finally:
     if process is not None and process.poll() is None:
-        os.killpg(process.pid, signal.SIGINT)
+        process.send_signal(signal.SIGINT)
         try:
             process.wait(timeout=10)
         except subprocess.TimeoutExpired:
@@ -66,5 +79,6 @@ assert process.returncode == 0, (process.returncode, log.read_text())
 assert not result.get('forced_cleanup'), result
 result.update({'result': 'PASS', 'launch_exit_code': process.returncode})
 Path.home().joinpath('.cache/cp21-delegated/preview-launch-result.json').write_text(
-    json.dumps(result, indent=2) + '\n')
+    json.dumps(result, indent=2) + '\n'
+)
 print(json.dumps(result))

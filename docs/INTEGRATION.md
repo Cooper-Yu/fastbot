@@ -18,7 +18,7 @@ colcon build --executor sequential --parallel-workers 1
 source install/setup.bash
 ```
 
-`third_party/lslidar` contains the unmodified manufacturer N10 driver, pinned in
+`third_party/lslidar` contains the manufacturer N10 driver with a recorded graceful-shutdown patch, pinned in
 `UPSTREAM.json`, including its original package license declarations and GPLv3
 license text. It is built from source; no access to GitHub from the Pi is needed.
 Licensing of the original student-authored packages remains undecided and must
@@ -53,8 +53,8 @@ Defaults are specific to the currently inspected robot:
 | --- | --- |
 | Namespace | `fastbot` |
 | Nano | `/dev/serial/by-id/usb-1a86_USB_Serial-if00-port0`, 57600 baud |
-| N10 candidate | `/dev/serial/by-id/usb-1a86_USB_Single_Serial_5B8E671883-if00`, 230400 baud; physical identity still to verify |
-| Camera | `/dev/video0`, IMX219 currently detected via unicam; v4l2 compatibility not yet verified |
+| N10 candidate | `/dev/serial/by-id/usb-1a86_USB_Single_Serial_5B8E671883-if00`, 230400 baud; N10 protocol and actual LaserScan stream verified |
+| Camera | `/dev/video0`, IMX219, verified with bm2835 mmal after the course configuration change |
 | Wheel radius | 0.032 m, from user-measured diameter |
 | Wheel separation | 0.12 m, user measurement |
 | Encoder CPR | 2537, common initial estimate from repeated hand rotations |
@@ -116,7 +116,7 @@ Current boot configuration has `camera_auto_detect=1` and the IMX219 uses
 `camera_auto_detect=0` and `start_x=1`, followed by a reboot. Back up and review
 `/boot/firmware/config.txt` before any such change. Do not copy the whole sample
 config, blindly remove overlays, or reboot while package installation is running.
-No boot edit or reboot has been performed by this integration deployment.
+The user applied the reviewed settings and rebooted on 2026-11-08; video0 was then verified as bm2835 mmal. Other robots must review their own boot configuration.
 
 ## Acceptance still required
 
@@ -129,3 +129,7 @@ minutes. Record each separately; no official score or learner PASS is inferred.
 
 ## Reviewed camera configuration helper
 Run `python3 ~/ros2_ws/src/fastbot_bringup/tools/configure_legacy_camera.py` to inspect the exact proposed boot diff. It is read-only by default. Apply requires sudo, `--apply`, and `--expected-sha256` with the checksum printed by review. The helper refuses ambiguous settings and changed input, writes a timestamped backup, and does not reboot. Reboot manually after all builds/package installations have finished. Legacy firmware/module presence was verified on this Pi; successful image capture still requires a post-reboot test.
+
+
+## Sensor streaming verification (2026-11-08)
+On this robot, both required sensor topics produced real messages after the reviewed camera boot change: 320x240 rgb8 images at about 30 Hz and N10 LaserScan at about 10 Hz. Motor serial access was disabled. The original N10 SIGINT handler called abort; the recorded patch removes that override, cleans up its publisher thread and avoids constructing a fresh executor during context shutdown. Both original failures and the final clean-exit run are retained in the training verification log. The camera is not intrinsically calibrated; missing camera calibration and unsupported control-read warnings were not hidden or replaced with invented calibration data. This sensor check does not establish motor, external-computer or rosject acceptance.
