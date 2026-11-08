@@ -171,3 +171,13 @@ Tools: `fastbot_bringup/tools/check_remote_keyboard_host.py`, `remote_keyboard_h
 Evidence caveat: the original result's `stop_path=watchdog_before_remote_zero` was an incorrect inference from observer callback order. Driver logs show receipt of the remote zero and its serial send before the later 0.5 s timeout; the 0.231603 s first stop was from the remote zero. Raw results are preserved; the helper now requires log review rather than inferring stop cause from callback order. This reporting-only repair did not trigger another motion test.
 
 The course explicitly names the submission repository `fastbot`. Upload/publication and the rosject download README are still pending; no GitHub repository was created and no code was pushed by these checks.
+## RViz visual check (2026-11-08)
+Both displays were opened in actual rosject RViz: an Image display showed the real camera scene and a LaserScan display showed the surrounding range points. Global Status was OK; two screenshots taken about one minute apart showed changing scan points. This supplements, rather than replaces, the earlier message-level image/scan checks. The camera and lidar ran with `serial_enabled:=false`; no motor port was opened or Twist sent. Screenshots stay in the local verification record and are not published with the source.
+
+A reusable configuration is provided at `fastbot_bringup/rviz/fastbot_sensors.rviz`. With the sensor streams available and the RRL connection active when using a rosject, start it using the path in your clone:
+
+```bash
+rviz2 -d ~/ros2_ws/src/fastbot/fastbot_bringup/rviz/fastbot_sensors.rviz
+```
+
+It uses `/fastbot_camera/image_raw` with the Image display, `/fastbot/scan` with LaserScan, best-effort/volatile topic QoS and `fastbot_laser_link` as the fixed frame. An Image display checks raw pictures without requiring camera calibration; this is not a calibrated Camera projection or verified sensor extrinsic model.
