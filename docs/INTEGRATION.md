@@ -5,13 +5,13 @@ lives at `~/ros2_ws/src`. No driver starts automatically at boot.
 
 ## Install and build
 
-The repository URL and instructor access are pending publication. Once the URL
-is supplied, clone the **whole repository** under a clean workspace's `src/`.
+Repository: https://github.com/Cooper-Yu/fastbot. Clone the **whole repository**
+under a clean workspace's `src/fastbot/`.
 Do not clone a second copy alongside the existing packages.
 
 ```bash
 source /opt/ros/humble/setup.bash
-bash ~/ros2_ws/src/fastbot_bringup/tools/prepare_dependencies.sh
+bash ~/ros2_ws/src/fastbot/fastbot_bringup/tools/prepare_dependencies.sh
 cd ~/ros2_ws
 rosdep install --from-paths src --ignore-src -r -y
 colcon build --executor sequential --parallel-workers 1
@@ -21,14 +21,13 @@ source install/setup.bash
 `third_party/lslidar` contains the manufacturer N10 driver with a recorded graceful-shutdown patch, pinned in
 `UPSTREAM.json`, including its original package license declarations and GPLv3
 license text. It is built from source; no access to GitHub from the Pi is needed.
-Licensing of the original student-authored packages remains undecided and must
-be resolved before public redistribution. Do not infer a blanket repository
-license from the manufacturer driver's license.
+The owner selected Apache-2.0 for the student-authored packages. See the root
+LICENSE and NOTICE for scope; the manufacturer driver retains its upstream GPL terms.
 
 ## Check without hardware
 
 ```bash
-python3 -m pytest -q ~/ros2_ws/src/serial_motor/test/test_odometry.py
+python3 -m pytest -q ~/ros2_ws/src/fastbot/serial_motor/test/test_odometry.py
 ros2 launch fastbot_bringup bringup.launch.xml \
   serial_enabled:=false lidar_enabled:=false camera_enabled:=false
 ```
@@ -128,7 +127,7 @@ minutes. Record each separately; no official score or learner PASS is inferred.
 
 
 ## Reviewed camera configuration helper
-Run `python3 ~/ros2_ws/src/fastbot_bringup/tools/configure_legacy_camera.py` to inspect the exact proposed boot diff. It is read-only by default. Apply requires sudo, `--apply`, and `--expected-sha256` with the checksum printed by review. The helper refuses ambiguous settings and changed input, writes a timestamped backup, and does not reboot. Reboot manually after all builds/package installations have finished. Legacy firmware/module presence was verified on this Pi; successful image capture still requires a post-reboot test.
+Run `python3 ~/ros2_ws/src/fastbot/fastbot_bringup/tools/configure_legacy_camera.py` to inspect the exact proposed boot diff. It is read-only by default. Apply requires sudo, `--apply`, and `--expected-sha256` with the checksum printed by review. The helper refuses ambiguous settings and changed input, writes a timestamped backup, and does not reboot. Reboot manually after all builds/package installations have finished. Legacy firmware/module presence was verified on this Pi; successful image capture still requires a post-reboot test.
 
 
 ## Sensor streaming verification (2026-11-08)

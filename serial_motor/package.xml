@@ -4,7 +4,7 @@
   <version>0.0.0</version>
   <description>ROS 2 serial motor command and measured encoder feedback node.</description>
   <maintainer email="yg-fastbot@todo.todo">yg-fastbot</maintainer>
-  <license>TODO: License declaration</license>
+  <license>Apache-2.0</license>
   <depend>rclpy</depend>
   <depend>serial_motor_msgs</depend>
   <depend>geometry_msgs</depend>
