@@ -125,5 +125,14 @@
       "opened_devices": false
     }
   },
-  "clean_clone_baseline": "93fb3f4 cloned under independent Linux workspace, env -i with only Humble underlay; all 6 packages built from scratch in 4min48s. This is the same Pi with declared system dependencies, not a fresh OS or a second robot."
+  "clean_clone_baseline": "93fb3f4 cloned under independent Linux workspace, env -i with only Humble underlay; all 6 packages built from scratch in 4min48s. This is the same Pi with declared system dependencies, not a fresh OS or a second robot.",
+  "independent_clone_audit": {
+    "baseline": "93fb3f4",
+    "baseline_build": "6 packages built from scratch in 4min48s",
+    "updated_code_revision": "d679a11",
+    "updated_build": "6 packages rebuilt successfully in independent workspace",
+    "updated_tests": "All four owned package checks passed; serial_motor 22 tests with 1 existing skip; messages 4 CTest checks; camera config 6 pytest cases; description has no configured tests",
+    "preview": "Actual hardware-disabled launch from clone overlay passed; normal exit",
+    "environment": "env -i, only Humble underlay, independent build/install/log; same Pi and declared global dependencies, not a fresh OS or second physical robot"
+  }
 }
