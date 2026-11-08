@@ -39,3 +39,7 @@ ros2 run serial_motor motor_driver --ros-args \
 - 许可证声明与正式交付仓库/下载说明仍需完善。
 
 详细学习、脚本和运行证据以 WSL `training_notes/checkpoint21/fastbot_setup/` 为权威记录；本仓库不复制完整学习历史。工程说明用中文，源码注释用英文；完成验证的教学 TODO 从源码移除，实际待办保留。
+
+
+## Delegated integration (2026-11-08)
+See [build, interfaces, safety and acceptance](docs/INTEGRATION.md). Software and physical acceptance are recorded separately.

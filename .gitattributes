@@ -1,0 +1,5 @@
+
+# Preserve byte-identical third-party sources and template-vendored assets.
+third_party/** -whitespace
+*/docs/_theme/** -whitespace
+*/docs/template_sources.json -whitespace

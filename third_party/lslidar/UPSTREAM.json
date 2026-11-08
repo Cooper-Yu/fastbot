@@ -1,0 +1,8 @@
+{
+  "repository": "https://github.com/Lslidar/Lslidar_ROS2_driver",
+  "branch": "N10_V1.0",
+  "commit": "bef9d813d108c4dde2523b9d20f76e4936016ee0",
+  "archive_sha256": "db3ecc3059e7fbb08bc62706025cdbf9057cbe1a962e9a3cc1b19b3149912989",
+  "source_modifications": [],
+  "license": "GPL-3.0 per upstream package metadata; upstream archive has no standalone license file; standard text supplied."
+}

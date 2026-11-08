@@ -1,0 +1,33 @@
+{
+  "date": "2026-11-08",
+  "environment": "Pi4 Ubuntu22.04 ARM64 Humble",
+  "build": "4 packages built successfully",
+  "motor_behavior_tests": "11 passed",
+  "colcon_motor": {
+    "tests": 14,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 1
+  },
+  "colcon_messages": "4 CTest checks passed; result collector also reports their four underlying XML records",
+  "preview_launch": {
+    "hardware_enabled": false,
+    "graph_topics": [
+      "/fastbot/cmd_vel",
+      "/fastbot/encoder_vals",
+      "/fastbot/joint_states",
+      "/fastbot/motor_vels",
+      "/fastbot/odom",
+      "/fastbot/robot_description",
+      "/parameter_events",
+      "/rosout",
+      "/tf",
+      "/tf_static"
+    ],
+    "command_and_timeout_preview": true,
+    "result": "PASS",
+    "launch_exit_code": 0
+  },
+  "sensor_build": "pending sudo dependencies",
+  "physical_tests": "not run in this delegated session"
+}
