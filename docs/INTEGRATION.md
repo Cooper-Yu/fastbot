@@ -221,3 +221,35 @@ All nine delivery READMEs are now English. A tracked-file scan found no Chinese 
 those READMEs or in student-authored Python comments/docstrings. Third-party source
 and license text retain their original provenance. The required video and official
 submission remain separate unfinished delivery steps.
+
+## Offline stop-evidence review
+
+The read-only utility `fastbot_bringup/tools/review_stop_log.py` classifies saved
+driver logs without importing ROS or opening hardware:
+
+```bash
+python3 fastbot_bringup/tools/review_stop_log.py saved-launch.log \
+  --json stop-review.json --markdown stop-review.md
+```
+
+For the final run above, the first three motion windows contain at least five
+consecutive near-zero feedback intervals after the logged zero attempt. The
+right-turn zero attempt is logged 0.556164474 s after driver command receipt.
+One feedback interval straddles that attempt. One later complete interval has
+small nonzero velocities (0.0248074451, 0.0496148901 rad/s), and no stable zero
+tail was captured before shutdown. The automated settling result remains
+unproven, and the original integration FAIL remains unchanged.
+
+The timeout message is emitted before serial I/O: it records an attempt, not
+an ACK timestamp or physical stop. Wheel velocities are interval averages;
+their inferred log-time edges are approximate acquisition boundaries. The
+observer's monotonic stop-budget clock cannot be precisely aligned to the
+driver's logger clock from this capture. These limitations prevent proving
+either a false alarm or the exact stopping latency. The 0.7 s guard and motor
+controller are unchanged. A future capture should separately timestamp zero
+attempt/ACK, encoder acquisition, and consecutive settled samples.
+
+The offline utility has eight boundary tests, including mixed intervals, missing
+ACK evidence, prior zero history, communication faults, and reversed timestamps.
+They pass alongside six existing camera tests on the Pi (Python 3.10/Humble).
+This is software evidence only; no additional physical test was performed.
