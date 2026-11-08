@@ -5,9 +5,12 @@ import time
 
 import rclpy
 import serial
-from geometry_msgs.msg import Twist
+from geometry_msgs.msg import TransformStamped, Twist
+from nav_msgs.msg import Odometry
 from rclpy.node import Node
+from sensor_msgs.msg import JointState
 from serial_motor_msgs.msg import EncoderVals, MotorVels
+from tf2_ros import TransformBroadcaster
 
 
 def compute_wheel_linear_speeds(linear_speed, angular_speed, wheel_separation):
@@ -115,7 +118,7 @@ def compute_robot_linear_speed(left_angular_speed, right_angular_speed, wheel_ra
     @param[in] right_angular_speed Measured right wheel angular speed in rad/s.
     @param[in] wheel_radius Common wheel radius in meters; positive and finite.
     @return Estimated robot forward speed in m/s, retaining its sign.
-    @note This pure calculation is not yet connected to the node."""
+    @note Used with measured wheel feedback, not requested motion."""
     require_positive_finite('wheel_radius', wheel_radius)
     if not all(math.isfinite(value) for value in (left_angular_speed, right_angular_speed)):
         raise ValueError('Wheel angular speeds must be finite')
@@ -132,7 +135,7 @@ def compute_robot_angular_speed(
     @param[in] wheel_radius Common wheel radius in meters; positive and finite.
     @param[in] wheel_separation Wheel centerline distance in meters; positive and finite.
     @return Estimated robot yaw rate in rad/s; a left turn is positive.
-    @note This pure calculation is not yet connected to the node."""
+    @note Used with measured wheel feedback, not requested motion."""
     require_positive_finite('wheel_radius', wheel_radius)
     require_positive_finite('wheel_separation', wheel_separation)
     if not all(math.isfinite(value) for value in (left_angular_speed, right_angular_speed)):
@@ -148,7 +151,7 @@ def compute_motion_increments(linear_speed, angular_speed, elapsed):
     @param[in] elapsed Actual sampling interval in seconds; positive and finite.
     @return Forward distance in meters and heading change in radians.
     @note These are interval increments, not absolute position.
-    This pure calculation is not yet connected to the node."""
+    The sampler supplies its actual measured interval."""
     require_positive_finite('elapsed', elapsed)
     if not all(math.isfinite(value) for value in (linear_speed, angular_speed)):
         raise ValueError('Robot speeds must be finite')
@@ -165,7 +168,7 @@ def advance_planar_pose(x, y, heading, distance, heading_change):
     @param[in] heading_change Signed heading change over this sample in radians.
     @return Updated fixed-frame x, y in meters and heading in radians.
     @note Use the interval's starting heading for this approximate position step.
-    Heading is not normalized here. This exercise is not connected to the node."""
+    Heading is not normalized here."""
     if not all(math.isfinite(value) for value in (x, y, heading, distance, heading_change)):
         raise ValueError('Pose and motion increments must be finite')
     return (
@@ -325,8 +328,11 @@ class MotorDriver(Node):
         try:
             self.connection = connection
             self.communication_fault = False
-            # CP21-C003-TODO94: Initialize self.x, self.y and self.heading at the origin.
-
+            self.x = 0.0
+            self.y = 0.0
+            self.heading = 0.0
+            self.wheel_positions = (0.0, 0.0)
+            self.body_velocity = (0.0, 0.0)
             self.previous_encoder_sample = None
             self.serial_enabled = self.declare_parameter('serial_enabled', False).value
             self.serial_port = self.declare_parameter('serial_port', '').value
@@ -364,10 +370,23 @@ class MotorDriver(Node):
             self.timeout_timer = self.create_timer(0.05, self.check_command_timeout)
             self.encoder_pub_ = self.create_publisher(EncoderVals, 'encoder_vals', 10)
             self.motor_vel_pub_ = self.create_publisher(MotorVels, 'motor_vels', 10)
+            self.configure_odometry()
             self.encoder_timer = self.create_timer(0.1, self.publish_encoder_values)
         except Exception:
             self.destroy_node()
             raise
+
+    def configure_odometry(self):
+        """@brief Configure body-frame output publishers without opening hardware."""
+        self.odom_frame = self.declare_parameter('odom_frame', 'fastbot_odom').value
+        self.base_frame = self.declare_parameter('base_frame', 'fastbot_base_link').value
+        self.publish_tf = self.declare_parameter('publish_tf', True).value
+        self.joint_prefix = self.declare_parameter('joint_prefix', 'fastbot_').value
+        if not self.odom_frame or not self.base_frame or self.odom_frame == self.base_frame:
+            raise ValueError('Odometry and base frame names must be nonempty and distinct')
+        self.odom_pub_ = self.create_publisher(Odometry, 'odom', 10)
+        self.joint_pub_ = self.create_publisher(JointState, 'joint_states', 10)
+        self.tf_broadcaster = TransformBroadcaster(self) if self.publish_tf else None
 
     def cmd_vel_callback(self, msg):
         """@brief Convert a valid velocity request into limited controller targets.
@@ -454,8 +473,71 @@ class MotorDriver(Node):
         # Advance the baseline only after both calculations succeed.
         left_angular_speed = compute_encoder_angular_speed(left_delta, elapsed, self.encoder_cpr)
         right_angular_speed = compute_encoder_angular_speed(right_delta, elapsed, self.encoder_cpr)
+        self.update_pose(left_angular_speed, right_angular_speed, elapsed)
         self.previous_encoder_sample = current_sample
         return left_angular_speed, right_angular_speed
+
+    def update_pose(self, left_speed, right_speed, elapsed):
+        """@brief Commit one complete measured interval to body and wheel state.
+
+        @param[in] left_speed Measured left wheel angular speed in rad/s.
+        @param[in] right_speed Measured right wheel angular speed in rad/s.
+        @param[in] elapsed Actual monotonic interval in seconds.
+        @note All candidate values are validated before any state is committed."""
+        linear = compute_robot_linear_speed(left_speed, right_speed, self.wheel_radius)
+        angular = compute_robot_angular_speed(
+            left_speed, right_speed, self.wheel_radius, self.wheel_separation
+        )
+        distance, change = compute_motion_increments(linear, angular, elapsed)
+        pose = advance_planar_pose(self.x, self.y, self.heading, distance, change)
+        wheels = (
+            self.wheel_positions[0] + left_speed * elapsed,
+            self.wheel_positions[1] + right_speed * elapsed,
+        )
+        if not all(math.isfinite(value) for value in (*pose, *wheels, linear, angular)):
+            raise ValueError('Non-finite accumulated odometry')
+        self.x, self.y, self.heading = pose
+        self.wheel_positions = wheels
+        self.body_velocity = (linear, angular)
+
+    def publish_odometry(self, angular_speeds):
+        """@brief Publish accumulated pose, measured body velocity, TF and wheel joints.
+
+        @param[in] angular_speeds Left/right measured angular speeds in rad/s.
+        @note Uses ROS timestamps for messages and monotonic intervals for integration.
+        Covariances are initial estimates, not a calibrated accuracy claim."""
+        stamp = self.get_clock().now().to_msg()
+        message = Odometry()
+        message.header.stamp = stamp
+        message.header.frame_id = self.odom_frame
+        message.child_frame_id = self.base_frame
+        message.pose.pose.position.x = self.x
+        message.pose.pose.position.y = self.y
+        message.pose.pose.orientation.z = math.sin(self.heading / 2)
+        message.pose.pose.orientation.w = math.cos(self.heading / 2)
+        message.twist.twist.linear.x = self.body_velocity[0]
+        message.twist.twist.angular.z = self.body_velocity[1]
+        for index, variance in ((0, 0.05), (7, 0.05), (14, 1e6), (21, 1e6), (28, 1e6), (35, 0.1)):
+            message.pose.covariance[index] = variance
+            message.twist.covariance[index] = variance
+        self.odom_pub_.publish(message)
+        if self.tf_broadcaster is not None:
+            transform = TransformStamped()
+            transform.header = message.header
+            transform.child_frame_id = self.base_frame
+            transform.transform.translation.x = self.x
+            transform.transform.translation.y = self.y
+            transform.transform.rotation = message.pose.pose.orientation
+            self.tf_broadcaster.sendTransform(transform)
+        joints = JointState()
+        joints.header.stamp = stamp
+        joints.name = [
+            self.joint_prefix + 'left_wheel_joint',
+            self.joint_prefix + 'right_wheel_joint',
+        ]
+        joints.position = list(self.wheel_positions)
+        joints.velocity = list(angular_speeds)
+        self.joint_pub_.publish(joints)
 
     def publish_encoder_values(self):
         """@brief Query cumulative counts and publish measured wheel feedback.
@@ -493,6 +575,7 @@ class MotorDriver(Node):
         velocity_message.mot_1_rad_sec = angular_speeds[0]
         velocity_message.mot_2_rad_sec = angular_speeds[1]
         self.motor_vel_pub_.publish(velocity_message)
+        self.publish_odometry(angular_speeds)
 
     def check_command_timeout(self):
         """@brief Attempt a zero target after the valid command lifetime expires.

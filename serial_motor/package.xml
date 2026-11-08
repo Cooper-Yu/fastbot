@@ -1,24 +1,25 @@
-<?xml version="1.0"?>
-<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<?xml version='1.0' encoding='utf-8'?>
 <package format="3">
   <name>serial_motor</name>
   <version>0.0.0</version>
   <description>ROS 2 serial motor command and measured encoder feedback node.</description>
   <maintainer email="yg-fastbot@todo.todo">yg-fastbot</maintainer>
   <license>TODO: License declaration</license>
-
   <depend>rclpy</depend>
   <depend>serial_motor_msgs</depend>
   <depend>geometry_msgs</depend>
-
   <exec_depend>python3-serial</exec_depend>
-
   <test_depend>ament_copyright</test_depend>
   <test_depend>ament_flake8</test_depend>
   <test_depend>ament_pep257</test_depend>
   <test_depend>python3-pytest</test_depend>
-
   <export>
     <build_type>ament_python</build_type>
   </export>
+  <depend>nav_msgs</depend>
+  <depend>sensor_msgs</depend>
+  <depend>tf2_ros</depend>
+  <exec_depend>launch</exec_depend>
+  <exec_depend>launch_ros</exec_depend>
+  <exec_depend>ament_index_python</exec_depend>
 </package>

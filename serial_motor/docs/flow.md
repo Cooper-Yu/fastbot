@@ -18,3 +18,6 @@ flowchart TD
 ```
 
 此图只描述当前源码职责。整车速度估计尚未接入，位置与朝向累计仍待后续学习实现；真实数据与停止证据以训练记录为准，图不替代运行验收。
+
+
+Measured feedback now updates body velocity, accumulated pose, wheel joints and Odometry/TF in the same successful sample transaction. The first sample only establishes a baseline. See ../../docs/INTEGRATION.md.

@@ -33,3 +33,7 @@ CP21 / Section21 5.4 当前驱动实现；环境为 Pi Ubuntu22.04 ARM64 / Humbl
 - [模板来源与第三方许可](docs/TEMPLATE_SOURCES.md)
 
 学习者当前题目与验证证据留在 WSL `training_notes/checkpoint21/fastbot_setup/`，这里记录当前接口，不复制逐题历史。Doxygen 配置已提供，当前 Pi 尚未安装生成工具，未声称 HTML 已生成或验收。
+
+
+## Measured odometry
+The node now publishes measured Odometry, TF and wheel JointState outputs. See ../docs/INTEGRATION.md for frames, assumptions, launch and testing.
