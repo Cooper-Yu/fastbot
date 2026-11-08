@@ -1,10 +1,12 @@
 # FastBot
 
-Checkpoint 21 的真实机器人驱动。目标环境：Raspberry Pi 4、Ubuntu 22.04 ARM64、ROS 2 Humble；上位控制器为 Arduino Nano，雷达为 N10，相机为 IMX219。
+Real-robot drivers for Checkpoint 21. Target: Raspberry Pi 4, Ubuntu 22.04 ARM64,
+and ROS 2 Humble. Hardware: Arduino Nano motor controller, N10 lidar, and IMX219 camera.
 
-## 下载、依赖与构建
+## Download, dependencies, and build
 
-在新的 Linux 工作空间中执行；已有同名包时不要再克隆一份。
+Use a clean Linux workspace. Do not clone another copy alongside existing packages
+with the same names.
 
 ```bash
 mkdir -p ~/ros2_ws/src
@@ -18,45 +20,63 @@ colcon build --executor sequential --parallel-workers 1
 source install/setup.bash
 ```
 
-依赖脚本需要 sudo，仅安装软件；不修改相机启动配置、不重启、不启动电机。首次使用 rosdep 的主机需要先完成其初始化。相机启动配置及硬件差异见 [集成说明](docs/INTEGRATION.md)。
+The dependency script needs sudo and only installs software. It does not change
+camera boot configuration, reboot, or start motors. Initialize rosdep first on a
+host where it has never been configured. See [integration notes](docs/INTEGRATION.md)
+for camera configuration and hardware differences.
 
-## 启动
+## Launch
 
-先检查不连接硬件的预览模式：
+First check the hardware-disabled preview:
 
 ```bash
 ros2 launch fastbot_bringup bringup.launch.xml \
   serial_enabled:=false lidar_enabled:=false camera_enabled:=false
 ```
 
-实物接线、供电和参数确认后，课程统一入口为：
+After checking wiring, power, and robot parameters, the course entry point is:
 
 ```bash
 ros2 launch fastbot_bringup bringup.launch.xml
 ```
 
-该入口默认打开真实设备；不收到有效速度指令时不发送非零目标。首次运动应固定车架、两轮悬空，并使用有界低速测试。没有配置开机自动启动。
+The default entry opens physical devices. It sends no nonzero motor target until
+a valid velocity command arrives. Secure the chassis, suspend both wheels, and
+use bounded low-speed checks for initial motion. Drivers do not start at boot.
 
-## 包与接口
+## Packages and interfaces
 
-| 路径 | 职责 |
+| Path | Responsibility |
 | --- | --- |
-| `serial_motor` | Twist 转换、串口目标、编码器反馈、里程计、TF 与轮关节状态 |
-| `serial_motor_msgs` | 自定义电机指令与反馈消息 |
-| `fastbot_bringup` | `bringup.launch.xml`、设备配置、诊断与测试工具 |
-| `fastbot_description` | 简化机器人模型；传感器安装位置尚非精确标定 |
-| `third_party/lslidar` | 固定上游版本的 N10 源码及退出修复补丁 |
+| `serial_motor` | Twist conversion, serial targets, encoder feedback, odometry, TF, and wheel joint states |
+| `serial_motor_msgs` | Custom motor-command and feedback message definitions |
+| `fastbot_bringup` | `bringup.launch.xml`, device configuration, diagnostics, and verification tools |
+| `fastbot_description` | Simplified robot model; sensor mounting transforms are approximate |
+| `third_party/lslidar` | Pinned upstream N10 source and a recorded shutdown patch |
 
-主要话题：`/fastbot/cmd_vel`（Twist）、`/fastbot/scan`（LaserScan）、`/fastbot_camera/image_raw`（Image）、`/fastbot/odom`（Odometry）、`/fastbot/joint_states`（JointState）。
+Main topics: `/fastbot/cmd_vel` (Twist), `/fastbot/scan` (LaserScan),
+`/fastbot_camera/image_raw` (Image), `/fastbot/odom` (Odometry), and
+`/fastbot/joint_states` (JointState).
 
-空串口参数会优先使用课程 udev 别名，再匹配唯一已知 USB 设备；缺失或歧义时拒绝猜测。可显式覆盖 `serial_port`、`lidar_port` 与 `camera_device`。本车轮半径 0.032 m、轮距 0.12 m、CPR 2537；其他机器人必须重新核对。
+Empty serial-port arguments prefer the course udev aliases, then a unique known
+USB device. Missing or ambiguous matches are rejected. Override `serial_port`,
+`lidar_port`, or `camera_device` when needed. This robot uses a 0.032 m wheel radius,
+0.12 m wheel separation, and 2537 encoder counts per revolution. Verify these
+measurements for another robot.
 
-## 验证与边界
+## Verification and limits
 
-已完成六包构建、自有包测试、独立克隆构建、真实相机/雷达、本机及 rosject 的单次有界键盘遥控和停车检查。测试结束后设备释放。详见 [实际证据及复现方式](docs/INTEGRATION.md)。
+Evidence includes a six-package build, owned-package tests, an independent clone
+build, actual camera/lidar streams, bounded local and rosject keyboard pulses,
+stop feedback, device release, and an actual RViz Image/LaserScan visual check.
+See [evidence and reproduction details](docs/INTEGRATION.md).
 
-这些证据不代表官方评分、地面导航精度或左右轮跟踪精度已经通过。短测试两轮增量不同，旧右轮启动停顿仍没有确定根因。发布仓库不自动启动任何硬件。
+These checks do not certify official grading, ground-navigation accuracy, matched
+wheel tracking, or a complete final grading-guide run. The short tests produced
+different wheel increments, and the earlier right-wheel startup pauses have no
+confirmed root cause. Publishing this repository starts no hardware.
 
-## 许可
+## License
 
-自有代码使用 [Apache-2.0](LICENSE)。第三方雷达驱动保留其 GPL 许可，模板附带资产保留各自许可；范围与来源见 [NOTICE](NOTICE)。
+Student-authored code uses [Apache-2.0](LICENSE). The lidar driver retains its GPL
+license, and template assets retain their own licenses. See [NOTICE](NOTICE) for scope.

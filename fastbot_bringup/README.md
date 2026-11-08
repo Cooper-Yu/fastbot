@@ -1,55 +1,45 @@
 # fastbot_bringup
 
-> Section/Checkpoint：CP21-DELEGATED-20261108 · 环境：humble · 模板：1.1.1
->
-> 当前：工具骨架已准备，核心功能与行为验证尚未完成。
+Coordinate the motor, robot-description, N10 lidar, and V4L2 camera drivers in ROS 2
+Humble. This package owns launch wiring and configuration, not firmware control.
 
-| 要查什么 | 入口 |
-| --- | --- |
-| 学习者当前动作与真实进度 | TODO：链接已有课程 code_lab/plan.md、attempt.md、verification.md |
-| 包的职责、接口与运行约定 | 本页以下内容 |
-| 数据/控制流程 | [flow.md](docs/flow.md) |
-| 代码规范与工具入口 | [tooling.md](docs/tooling.md) |
-| 统一排版的效果与规则说明 | [style_profile.md](docs/style_profile.md) |
-| 类/方法文档 | [Doxygen 源说明](docs/api.dox)；生成后打开 docs/generated/html/index.html |
-| 测试用例与接线 | [test/README.md](test/README.md) |
-| 调试、构建与测试任务 | .vscode/launch.json、.vscode/tasks.json |
-| 包的工程关系总览 | [engineering.canvas](docs/engineering.canvas) |
-| 模板来源和许可 | [TEMPLATE_SOURCES.md](docs/TEMPLATE_SOURCES.md) |
-
-## 职责与边界
-
-TODO：由学习者说明本包负责什么、哪些职责属于其他包。
-
-## 输入 输出与状态
-
-| 接口 | 类型/单位 | 前置条件 | 输出或副作用 |
-| --- | --- | --- | --- |
-| TODO | TODO | TODO | TODO |
-
-## 运行入口
-
-TODO：实现入口确认后记录真实命令、参数、ROS 接口和停止条件。
-模板不会自动启动节点、创建控制逻辑或初始化 Git 仓库。
-
-## 本轮实现与验证
-
-核心 TODO、学习者尝试和测试预期保存在对应课程权威记录中，不在本页重复完整作答。
-每个有意义片段：保存排版 → 查看规范诊断 → 审阅 diff → 调试/测试行为 → 记录证据。
-需要云端/官方/真机的 gate 分开记录，生成模板不等于课程 PASS。
-
-## 文档生成
-
-从本包根目录运行：
+## Entry points
 
 ```bash
-doxygen docs/Doxyfile
+ros2 launch fastbot_bringup bringup.launch.xml
 ```
 
-Doxygen 页使用固定版本的 Doxygen Awesome 样式。
-修改源码注释后重新运行生成命令。
-Markdown 中的 Mermaid 由支持 Mermaid 的预览器显示；Doxygen 的关联页显示对应源码/说明，不默认把 Mermaid 变成运行追踪。
+The default opens physical devices. For preview without hardware:
 
+```bash
+ros2 launch fastbot_bringup bringup.launch.xml \
+  serial_enabled:=false lidar_enabled:=false camera_enabled:=false
+```
 
-## Current implementation
-Entry: ros2 launch fastbot_bringup bringup.launch.xml. Default opens physical devices; use serial_enabled:=false lidar_enabled:=false camera_enabled:=false for preview. See ../docs/INTEGRATION.md.
+Launch arguments include `robot_name`, `serial_enabled`, `serial_port`,
+`lidar_enabled`, `lidar_port`, `camera_enabled`, and `camera_device`. Empty serial
+paths select a unique known device or reject ambiguity. See the
+[integration guide](../docs/INTEGRATION.md) for dependencies, topic names, measured
+parameters, camera configuration, stop behavior, and verification limits.
+
+The reviewed RViz configuration is `rviz/fastbot_sensors.rviz`. The `tools/`
+directory contains software previews, camera-configuration checks, sensor checks,
+and explicitly bounded motor/keyboard checks. Hardware checks require current
+authorization and onsite setup; the existence of a tool is not permission to run it.
+
+## Engineering references
+
+| Reference | Purpose |
+| --- | --- |
+| [flow.md](docs/flow.md) | Data and control flow |
+| [tooling.md](docs/tooling.md) | Tool entry points and checks |
+| [style_profile.md](docs/style_profile.md) | Formatting and naming conventions |
+| [test/README.md](test/README.md) | Actual tests and their boundaries |
+| [api.dox](docs/api.dox) | Doxygen source entry |
+| [engineering.canvas](docs/engineering.canvas) | Links between engineering files |
+| [TEMPLATE_SOURCES.md](docs/TEMPLATE_SOURCES.md) | Template sources and licenses |
+
+VS Code build/debug tasks are supplied. To generate documentation, when Doxygen
+is installed, run `doxygen docs/Doxyfile` from this package. The pinned Doxygen
+Awesome assets retain their licenses. Configuration presence does not certify
+generated HTML, debugger UI behavior, official grading, or learner completion.

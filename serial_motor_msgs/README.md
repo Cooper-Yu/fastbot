@@ -1,16 +1,19 @@
 # serial_motor_msgs
 
-CP21 / Section21 5.3 消息接口包，ament_cmake + rosidl 生成；不运行电机或持有串口。
+ROS 2 message interfaces generated with `ament_cmake` and `rosidl`. This package
+does not run motors or own a serial connection.
 
-| 消息 | 字段 | 单位/用途 |
+| Message | Fields | Units and purpose |
 | --- | --- | --- |
-| `EncoderVals` | int32 mot_1_enc_val / mot_2_enc_val | 左右累计计数 |
-| `MotorVels` | float32 mot_1_rad_sec / mot_2_rad_sec | 左右角速度，rad/s |
-| `MotorCommands` | bool is_pwm；float32 mot_1_req_rad_sec / mot_2_req_rad_sec | 命令接口定义；当前驱动速度输入使用 Twist |
+| `EncoderVals` | `int32 mot_1_enc_val`, `int32 mot_2_enc_val` | Cumulative left/right encoder counts |
+| `MotorVels` | `float32 mot_1_rad_sec`, `float32 mot_2_rad_sec` | Left/right wheel angular velocities in rad/s |
+| `MotorCommands` | `bool is_pwm`, `float32 mot_1_req_rad_sec`, `float32 mot_2_req_rad_sec` | Command interface definition; the current driver receives Twist |
 
-已在目标 Pi/Humble 构建、显示接口并从 Python 导入；EncoderVals/MotorVels 的真实 ROS 发布在驱动阶段验证。接口存在本身不表示有节点运行。
+The interfaces were built and displayed on the target Pi/Humble environment and
+imported from Python. Actual EncoderVals/MotorVels publication was checked with
+the driver. Interface installation alone does not imply a running node.
 
-## 构建与接口查看
+## Build and inspect
 
 ```bash
 cd ~/ros2_ws
@@ -19,12 +22,15 @@ source install/setup.bash
 ros2 interface show serial_motor_msgs/msg/EncoderVals
 ```
 
-源文件为 msg/，CMakeLists.txt 列出三接口；package.xml 声明 rosidl 生成/运行依赖和接口包组。许可证仍为待确定项，未自行代选。
+Definitions live in `msg/`. `CMakeLists.txt` registers all three interfaces;
+`package.xml` declares generation/runtime dependencies and interface-package group
+membership. Student-authored code is Apache-2.0; see the root LICENSE and NOTICE.
 
-## 工程导航
+## Engineering references
 
-- [流程](docs/flow.md) · [工具](docs/tooling.md) · [样式](docs/style_profile.md)
-- [注释约定](docs/comment_checks.md) · [测试说明](test/README.md)
-- [模板来源与第三方许可](docs/TEMPLATE_SOURCES.md)
+- [Flow](docs/flow.md), [tooling](docs/tooling.md), and [style profile](docs/style_profile.md)
+- [Comment conventions](docs/comment_checks.md), [tests](test/README.md), and
+  [template provenance](docs/TEMPLATE_SOURCES.md)
 
-学习者当前题目与验证证据留在 WSL `training_notes/checkpoint21/fastbot_setup/`，这里记录当前接口，不复制逐题历史。Doxygen 配置已提供，当前 Pi 尚未安装生成工具，未声称 HTML 已生成或验收。
+Detailed learner answers and runtime evidence remain in the authoritative training
+records. Supplied Doxygen configuration does not imply generated HTML acceptance.
