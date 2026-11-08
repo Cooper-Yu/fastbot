@@ -30,7 +30,7 @@
   },
   "sensor_build": "All six packages built after the recorded shutdown patch",
   "physical_tests": {
-    "motor": "not enabled during this delegated session",
+    "motor": "One explicitly authorized suspended-wheel pulse passed; no additional real motion",
     "camera_lidar": {
       "motor_serial_enabled": false,
       "images": 38,
@@ -62,7 +62,45 @@
       "launch_exit_code": 0,
       "abnormal_child_exits": []
     },
-    "shutdown": "all four child processes clean; no abnormal child exits; no forced cleanup"
+    "shutdown": "all four child processes clean; no abnormal child exits; no forced cleanup",
+    "single_motor_pulse": {
+      "status": "pass",
+      "mode": "real",
+      "count_delta": [
+        142,
+        169
+      ],
+      "timeout_stop_delay": 0.5095901899994715,
+      "encoder_messages": 25,
+      "velocity_messages": 23,
+      "nonzero_command_count": 1,
+      "closed": true
+    }
   },
-  "camera_config_tests": "6 passed (string-only review/edit-boundary tests; boot file unchanged)"
+  "camera_config_tests": "6 passed (string-only review/edit-boundary tests; boot file unchanged)",
+  "keyboard_software": {
+    "hardware_enabled": false,
+    "topic": "/cp21_keyboard_probe_ec0e23002b3f",
+    "result": "PASS",
+    "received_twists": [
+      [
+        0.03,
+        0.0
+      ],
+      [
+        0.0,
+        0.3
+      ],
+      [
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0
+      ]
+    ],
+    "exit_code": 0
+  },
+  "keyboard_guarded_fake": "One i key followed by k about 0.3s later passed through the official keyboard app and fake serial; real keyboard motion not authorized yet."
 }
