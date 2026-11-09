@@ -63,8 +63,18 @@ ros2 topic echo /fastbot/scan
 ros2 topic echo /fastbot_camera/image_raw
 ```
 
-For visual verification in RViz2, add LaserScan for `/fastbot/scan` and Image for
-`/fastbot_camera/image_raw`.
+For visual verification, keep bringup running on the robot and open another
+terminal in the connected rosject. With this repository cloned at
+`~/ros2_ws/src/fastbot`, load the supplied RViz2 configuration:
+
+```bash
+source /opt/ros/humble/setup.bash
+rviz2 -d ~/ros2_ws/src/fastbot/fastbot_bringup/rviz/fastbot_sensors.rviz
+```
+
+The configuration already includes LaserScan (`/fastbot/scan`), Image
+(`/fastbot_camera/image_raw`), and the fixed frame `fastbot_laser_link`.
+`bringup.launch.xml` starts the robot drivers; it does not open RViz2.
 
 ## Details
 
