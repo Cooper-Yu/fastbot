@@ -11,6 +11,27 @@ Target: Raspberry Pi 4, Ubuntu 22.04 ARM64, ROS 2 Humble.
   the RViz configuration; skip the robot dependency, build, and launch sections.
   Connect the robot through The Construct before viewing data or sending commands.
 
+## Connect to the robot via SSH
+
+Power on the Raspberry Pi and connect your computer to the same local network.
+From a terminal on your computer (for example, Windows PowerShell), run:
+
+```bash
+ssh yg-fastbot@yg-fastbot.local
+```
+
+These are this robot's configured username and hostname; substitute your own if
+different. If the `.local` name cannot be resolved, use the robot's current LAN IP
+instead of `yg-fastbot.local`. On first connection, verify the host fingerprint
+before accepting it, then enter your Raspberry Pi user's password when prompted.
+
+A prompt such as `yg-fastbot@yg-fastbot:~$` means commands now run on the Raspberry
+Pi. Use that terminal for the robot dependency, build, and launch steps below.
+The rosject prompt `user:~$` belongs to the cloud computer, not the Raspberry Pi.
+Keep the driver terminal open while using RViz2 or teleoperation; open another
+SSH connection if you need a second robot terminal. Run `exit` when finished
+with an idle SSH shell.
+
 ## Download (robot or rosject)
 
 Use a clean workspace without duplicate copies of these packages. Run this on
