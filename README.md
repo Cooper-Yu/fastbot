@@ -1,12 +1,11 @@
 # FastBot
 
-Real-robot drivers for Checkpoint 21. Target: Raspberry Pi 4, Ubuntu 22.04 ARM64,
-and ROS 2 Humble. Hardware: Arduino Nano motor controller, N10 lidar, and IMX219 camera.
+ROS 2 drivers for Checkpoint 21: Arduino Nano motors, N10 lidar, and an IMX219 camera.
+Target: Raspberry Pi 4, Ubuntu 22.04 ARM64, ROS 2 Humble.
 
-## Download, dependencies, and build
+## Download and dependencies
 
-Use a clean Linux workspace. Do not clone another copy alongside existing packages
-with the same names.
+Use a clean workspace without duplicate copies of these packages:
 
 ```bash
 mkdir -p ~/ros2_ws/src
@@ -16,67 +15,63 @@ source /opt/ros/humble/setup.bash
 bash ~/ros2_ws/src/fastbot/fastbot_bringup/tools/prepare_dependencies.sh
 cd ~/ros2_ws
 rosdep install --from-paths src --ignore-src -r -y
+```
+
+The dependency script requires sudo. Initialize rosdep first if it has never been
+configured. Complete the [camera setup](docs/INTEGRATION.md#camera-setup-boundary)
+before launching; installing dependencies does not configure the camera boot settings.
+
+## Build
+
+```bash
+cd ~/ros2_ws
+source /opt/ros/humble/setup.bash
 colcon build --executor sequential --parallel-workers 1
 source install/setup.bash
 ```
 
-The dependency script needs sudo and only installs software. It does not change
-camera boot configuration, reboot, or start motors. Initialize rosdep first on a
-host where it has never been configured. See [integration notes](docs/INTEGRATION.md)
-for camera configuration and hardware differences.
-
 ## Launch
 
-First check the hardware-disabled preview:
-
-```bash
-ros2 launch fastbot_bringup bringup.launch.xml \
-  serial_enabled:=false lidar_enabled:=false camera_enabled:=false
-```
-
-After checking wiring, power, and robot parameters, the course entry point is:
+With wiring, power, and robot parameters checked:
 
 ```bash
 ros2 launch fastbot_bringup bringup.launch.xml
 ```
 
-The default entry opens physical devices. It sends no nonzero motor target until
-a valid velocity command arrives. Secure the chassis, suspend both wheels, and
-use bounded low-speed checks for initial motion. Drivers do not start at boot.
+This starts the motor, lidar, and camera drivers. For initial motion checks, secure
+the chassis with both wheels suspended and keep hands clear of the wheels.
 
-## Packages and interfaces
+## Keyboard teleoperation
 
-| Path | Responsibility |
-| --- | --- |
-| `serial_motor` | Twist conversion, serial targets, encoder feedback, odometry, TF, and wheel joint states |
-| `serial_motor_msgs` | Custom motor-command and feedback message definitions |
-| `fastbot_bringup` | `bringup.launch.xml`, device configuration, diagnostics, and verification tools |
-| `fastbot_description` | Simplified robot model; sensor mounting transforms are approximate |
-| `third_party/lslidar` | Pinned upstream N10 source and a recorded shutdown patch |
+In another SSH terminal on the robot, or in a ROS 2 Humble rosject connected to it:
 
-Main topics: `/fastbot/cmd_vel` (Twist), `/fastbot/scan` (LaserScan),
-`/fastbot_camera/image_raw` (Image), `/fastbot/odom` (Odometry), and
-`/fastbot/joint_states` (JointState).
+```bash
+source /opt/ros/humble/setup.bash
+ros2 run teleop_twist_keyboard teleop_twist_keyboard --ros-args --remap cmd_vel:=/fastbot/cmd_vel
+```
 
-Empty serial-port arguments prefer the course udev aliases, then a unique known
-USB device. Missing or ambiguous matches are rejected. Override `serial_port`,
-`lidar_port`, or `camera_device` when needed. This robot uses a 0.032 m wheel radius,
-0.12 m wheel separation, and 2537 encoder counts per revolution. Verify these
-measurements for another robot.
+Before moving, press `z` repeatedly to reduce both displayed speeds for a low-speed
+check. Press `k` to stop and `Ctrl+C` to exit. Use only one velocity-command source.
 
-## Verification and limits
+## Verify camera and lidar
 
-Evidence includes a six-package build, owned-package tests, an independent clone
-build, actual camera/lidar streams, bounded local and rosject keyboard pulses,
-stop feedback, device release, and an actual RViz Image/LaserScan visual check.
-See [evidence and reproduction details](docs/INTEGRATION.md).
+With the drivers running, run each check in a separate ROS-enabled terminal on the
+robot or connected rosject. Press `Ctrl+C` to finish each check:
 
-These checks do not certify official grading, ground-navigation accuracy, matched
-wheel tracking, or a complete final grading-guide run. The short tests produced
-different wheel increments, and the earlier right-wheel startup pauses have no
-confirmed root cause. Publishing this repository starts no hardware.
+```bash
+ros2 topic hz /fastbot/scan
+ros2 topic hz /fastbot_camera/image_raw
+```
+
+For visual verification in RViz2, add LaserScan for `/fastbot/scan` and Image for
+`/fastbot_camera/image_raw`.
+
+## Details
+
+See [integration notes](docs/INTEGRATION.md) for device configuration, robot parameters,
+package interfaces, preview mode, verification evidence, and known limitations.
 
 ## License
 
 Student-authored code uses [Apache-2.0](LICENSE). The lidar driver retains its GPL
-license, and template assets retain their own licenses. See [NOTICE](NOTICE) for scope.
+license. See [NOTICE](NOTICE) for third-party and template license scope.
