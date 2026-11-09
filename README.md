@@ -111,8 +111,10 @@ source /opt/ros/humble/setup.bash
 rviz2 -d ~/ros2_ws/src/fastbot/fastbot_bringup/rviz/fastbot_sensors.rviz
 ```
 
-The configuration already includes LaserScan (`/fastbot/scan`), Image
-(`/fastbot_camera/image_raw`), and the fixed frame `fastbot_laser_link`.
+The configuration includes LaserScan (`/fastbot/scan`), Image
+(`/fastbot_camera/image_raw`), and TF with coordinate axes and frame names enabled.
+The fixed frame is `fastbot_laser_link`. For the video, briefly show the base,
+wheel, lidar, and camera frames; confirm TF has no errors before recording.
 `bringup.launch.xml` starts the robot drivers; it does not open RViz2.
 
 ## Details
