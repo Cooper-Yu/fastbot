@@ -13,24 +13,47 @@ Target: Raspberry Pi 4, Ubuntu 22.04 ARM64, ROS 2 Humble.
 
 ## Connect to the robot via SSH
 
-Power on the Raspberry Pi and connect your computer to the same local network.
-From a terminal on your computer (for example, Windows PowerShell), run:
+**From the rosject (course workflow):** first connect the powered-on robot through
+The Construct, then check the SSH destination in a rosject terminal:
+
+```bash
+getent hosts master
+```
+
+If it resolves to the robot's platform address, log in using the Raspberry Pi
+account. The course example is `ssh fastbot@master`; this robot's configured
+account is `yg-fastbot`, so use:
+
+```bash
+ssh yg-fastbot@master
+```
+
+If `master` resolves to loopback (`::1` or `127.x.x.x`), it points to the rosject
+itself, not the robot. Recheck the platform connection and address mapping before
+trying SSH again. `Connection refused` occurs before password authentication;
+changing the username does not fix it. This result alone does not identify the
+platform fault or prove ROS message transport is broken. Do not edit `hosts` or
+restart the robot as a first response.
+
+**Local-network fallback:** from your own computer on the same LAN as the robot
+(for example, Windows PowerShell), use:
 
 ```bash
 ssh yg-fastbot@yg-fastbot.local
 ```
 
-These are this robot's configured username and hostname; substitute your own if
-different. If the `.local` name cannot be resolved, use the robot's current LAN IP
-instead of `yg-fastbot.local`. On first connection, verify the host fingerprint
-before accepting it, then enter your Raspberry Pi user's password when prompted.
+Substitute your own username/hostname if different, or use the robot's current
+LAN IP if `.local` cannot be resolved. This LAN name is not the rosject entry.
+Windows and existing SSH sessions do not need to be closed to use the rosject.
 
-A prompt such as `yg-fastbot@yg-fastbot:~$` means commands now run on the Raspberry
-Pi. Use that terminal for the robot dependency, build, and launch steps below.
-The rosject prompt `user:~$` belongs to the cloud computer, not the Raspberry Pi.
-Keep the driver terminal open while using RViz2 or teleoperation; open another
-SSH connection if you need a second robot terminal. Run `exit` when finished
-with an idle SSH shell.
+On first login, verify the host fingerprint before accepting it, then enter the
+Raspberry Pi user's password when prompted. A prompt such as
+`yg-fastbot@yg-fastbot:~$` identifies the robot shell: use it for dependency,
+build, and driver-launch commands. The prompt `user:~$` identifies the rosject
+shell: use it for cloud teleoperation and RViz2. Connecting through the platform
+enables communication; it does not turn an existing cloud shell into a robot shell.
+Keep the driver SSH terminal open while using the robot; use another terminal
+for teleoperation/RViz2, and `exit` only from an idle SSH shell when finished.
 
 ## Download (robot or rosject)
 
