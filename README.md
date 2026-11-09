@@ -3,14 +3,32 @@
 ROS 2 drivers for Checkpoint 21: Arduino Nano motors, N10 lidar, and an IMX219 camera.
 Target: Raspberry Pi 4, Ubuntu 22.04 ARM64, ROS 2 Humble.
 
-## Download and dependencies
+## Where to run commands
 
-Use a clean workspace without duplicate copies of these packages:
+- **Robot (Raspberry Pi, via SSH):** install dependencies, build, and launch the drivers.
+- **Connected rosject (ROS 2 Humble):** run teleoperation and RViz2. If it already
+  provides `teleop_twist_keyboard` and RViz2, only download this repository for
+  the RViz configuration; skip the robot dependency, build, and launch sections.
+  Connect the robot through The Construct before viewing data or sending commands.
+
+## Download (robot or rosject)
+
+Use a clean workspace without duplicate copies of these packages. Run this on
+each machine that needs a copy; cloning on the robot does not download it into
+the rosject:
 
 ```bash
 mkdir -p ~/ros2_ws/src
 cd ~/ros2_ws/src
 git clone https://github.com/Cooper-Yu/fastbot.git
+```
+
+## Install dependencies (robot only)
+
+Run in the Raspberry Pi SSH terminal. Skip this section in a rosject used only
+for teleoperation and visualization:
+
+```bash
 source /opt/ros/humble/setup.bash
 bash ~/ros2_ws/src/fastbot/fastbot_bringup/tools/prepare_dependencies.sh
 cd ~/ros2_ws
@@ -21,7 +39,7 @@ The dependency script requires sudo. Initialize rosdep first if it has never bee
 configured. Complete the [camera setup](docs/INTEGRATION.md#camera-setup-boundary)
 before launching; installing dependencies does not configure the camera boot settings.
 
-## Build
+## Build (robot only)
 
 ```bash
 cd ~/ros2_ws
@@ -30,7 +48,7 @@ colcon build --executor sequential --parallel-workers 1
 source install/setup.bash
 ```
 
-## Launch
+## Launch (robot only)
 
 With wiring, power, and robot parameters checked:
 
