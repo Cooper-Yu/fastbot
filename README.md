@@ -59,8 +59,8 @@ With the drivers running, run each check in a separate ROS-enabled terminal on t
 robot or connected rosject. Press `Ctrl+C` to finish each check:
 
 ```bash
-ros2 topic hz /fastbot/scan
-ros2 topic hz /fastbot_camera/image_raw
+ros2 topic echo /fastbot/scan
+ros2 topic echo /fastbot_camera/image_raw
 ```
 
 For visual verification in RViz2, add LaserScan for `/fastbot/scan` and Image for
