@@ -16,13 +16,22 @@ Target: Raspberry Pi 4, Ubuntu 22.04 ARM64, ROS 2 Humble.
 ### Local computer (current workflow)
 
 Connect your computer to the same LAN as the Raspberry Pi. From a local terminal
-(for example, Windows PowerShell), run:
+(for example, Windows PowerShell), use either format:
+
+```bash
+ssh USERNAME@HOSTNAME.local
+ssh USERNAME@ROBOT_IP
+```
+
+Replace `USERNAME` with the Raspberry Pi login account, `HOSTNAME` with its configured
+hostname, or `ROBOT_IP` with its current LAN IP. These names are not fixed by this
+project. For example, this robot uses `yg-fastbot` for both its username and hostname:
 
 ```bash
 ssh yg-fastbot@yg-fastbot.local
 ```
 
-Use the Raspberry Pi's current LAN IP if the `.local` name cannot be resolved.
+Use the IP form if the `.local` name cannot be resolved.
 After login, run the robot dependency, build, and launch steps in this SSH
 terminal. Keep bringup running there. In the connected rosject, use separate
 terminals for topic checks, RViz2, and keyboard teleoperation.
