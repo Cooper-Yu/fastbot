@@ -13,6 +13,22 @@ Target: Raspberry Pi 4, Ubuntu 22.04 ARM64, ROS 2 Humble.
 
 ## Connect to the robot via SSH
 
+### Local computer (current workflow)
+
+Connect your computer to the same LAN as the Raspberry Pi. From a local terminal
+(for example, Windows PowerShell), run:
+
+```bash
+ssh yg-fastbot@yg-fastbot.local
+```
+
+Use the Raspberry Pi's current LAN IP if the `.local` name cannot be resolved.
+After login, run the robot dependency, build, and launch steps in this SSH
+terminal. Keep bringup running there. In the connected rosject, use separate
+terminals for topic checks, RViz2, and keyboard teleoperation.
+
+### Rosject (course workflow)
+
 Connect the robot through The Construct, then run the course command in a
 rosject terminal:
 
@@ -20,14 +36,22 @@ rosject terminal:
 ssh fastbot@master
 ```
 
-For this robot, replace the course username `fastbot` with the configured
-username `yg-fastbot`:
+This robot's configured account is `yg-fastbot`, so its corresponding command is:
 
 ```bash
 ssh yg-fastbot@master
 ```
 
-After login, run the robot dependency, build, and launch commands in that SSH terminal.
+**Observed issue (2026-11-09, rosject 1016322):** after reconnecting, `master`
+still resolved to `::1` (the cloud machine itself), and SSH returned
+`Connection refused`. Direct access from the cloud to the robot's tunnel address
+received an SSH server response. This identifies an incorrect `master` mapping;
+the platform's underlying cause and a permanent fix remain unverified.
+
+Until that mapping is corrected, use local SSH to start the robot drivers and
+the connected rosject for topic checks, RViz2, and teleoperation. The SSH alias
+failure alone does not establish whether ROS messages are passing: confirm live
+sensor data before attempting motion. Use only one teleoperation command source.
 
 ## Download (robot or rosject)
 
